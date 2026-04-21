@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use this software or its results, please cite it using the metadata below."
+type: software
+title: "Concurrent Hash Tables and Radix Trees under LLM-Derived Workloads"
+authors:
+  - family-names: "Lemma"
+    given-names: "Nathan"
+  - family-names: "Chikosha"
+    given-names: "Joshua"
+  - family-names: "Teshome"
+    given-names: "Yonatan"
+version: "0.1.0"
+date-released: "2026-04-20"
+license: MIT
+repository-code: "https://github.com/Code-Tomato/CHT_Radix"
+abstract: "C++17 implementations of five concurrent hash tables and two concurrent radix trees, evaluated on synthetic and ShareGPT-derived workloads for LLM prefix-caching behavior."
+keywords:
+  - concurrent hash tables
+  - concurrent radix trees
+  - cuckoo hashing
+  - seqlock
+  - LLM serving
+  - PagedAttention
+  - ShareGPT
+preferred-citation:
+  type: article
+  title: "Concurrent Hash Tables and Radix Trees Under LLM-Derived Workloads"
+  authors:
+    - family-names: "Lemma"
+      given-names: "Nathan"
+    - family-names: "Chikosha"
+      given-names: "Joshua"
+    - family-names: "Teshome"
+      given-names: "Yonatan"
+  year: 2026
+  institution: "The University of Texas at Austin"

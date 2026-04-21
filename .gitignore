@@ -1,0 +1,59 @@
+# Build directories
+build/
+build-*/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+Makefile
+*.o
+*.a
+*.so
+*.dylib
+
+# Clangd / IDE caches
+.cache/
+.clangd/
+.vscode/
+.idea/
+*.swp
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Generated experiment outputs (regenerated via scripts/run_hash_sweep.sh)
+results/experiments_*.csv
+results/perf_*.log
+!results/experiments_canonical.csv
+
+# Generated traces (regenerated via src/trace/extract.py)
+data/*.trace
+!data/.gitkeep
+
+# Results intermediate files
+results/experiments_*.csv
+results/experiments_*.meta.json
+results/radix_sweep_*.csv
+results/radix_sweep_*.meta.json
+!results/experiments_canonical.csv
+!results/experiments_canonical.meta.json
+!results/radix_sweep_canonical.csv
+!results/radix_sweep_canonical.meta.json
+
+# OS / editor detritus
+.DS_Store
+Thumbs.db
+*~
+
+# AI helpers
+.claude/
+.cursor/
+
+# Archive
+docs/archive/

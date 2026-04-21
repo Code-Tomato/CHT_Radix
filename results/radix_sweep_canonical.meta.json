@@ -1,0 +1,29 @@
+{
+  "csv": "results/radix_sweep_canonical.csv",
+  "repeats": 3,
+  "base_seed": 42,
+  "ops_per_run": 500000,
+  "warmup_ops_per_thread": 5000,
+  "read_fraction": 0.95,
+  "prepopulate": 20000,
+  "universe": 100000,
+  "git_sha": "2014b36",
+  "started_at": "2026-04-21T10:22:20Z",
+  "finished_at": "2026-04-21T10:22:35Z",
+  "tables": [
+    "cuckoo_optimistic",
+    "chaining_fine",
+    "radix_tree_coarse",
+    "radix_tree_fine"
+  ],
+  "prefix_counts": [
+    "10",
+    "100",
+    "1000",
+    "10000"
+  ],
+  "threads": [
+    "1",
+    "8"
+  ]
+}

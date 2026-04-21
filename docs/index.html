@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concurrent Data Structure Explorer</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --font-sans:system-ui,-apple-system,sans-serif;
+  --font-mono:ui-monospace,"SF Mono","Cascadia Code",monospace;
+  --color-background-primary:#ffffff;--color-background-secondary:#f5f4ef;
+  --color-text-primary:#1a1a18;--color-text-secondary:#5a5a56;--color-text-tertiary:#9a9a94;
+  --color-border-tertiary:rgba(0,0,0,0.12);--color-border-secondary:rgba(0,0,0,0.22);--color-border-primary:rgba(0,0,0,0.35);
+  --border-radius-md:8px;--border-radius-lg:12px;
+  --c0:#E24B4A;--c1:#378ADD;--c2:#1D9E75;--c3:#888780;--c4:#BA7517;--c5:#D4537E;--c6:#7F77DD;
+  --tb0:#FAECE7;--tb1:#E6F1FB;--tb2:#E1F5EE;--tb3:#F1EFE8;--tb4:#FAEEDA;--tb5:#FBEAF0;--tb6:#EEEDFE;
+  --tt0:#993C1D;--tt1:#185FA5;--tt2:#0F6E56;--tt3:#5F5E5A;--tt4:#854F0B;--tt5:#72243E;--tt6:#3C3489;
+}
+@media(prefers-color-scheme:dark){:root{
+  --color-background-primary:#1e1e1c;--color-background-secondary:#2a2a28;
+  --color-text-primary:#e8e8e2;--color-text-secondary:#a8a8a2;--color-text-tertiary:#686864;
+  --color-border-tertiary:rgba(255,255,255,0.1);--color-border-secondary:rgba(255,255,255,0.18);--color-border-primary:rgba(255,255,255,0.3);
+  --c0:#F09595;--c1:#85B7EB;--c2:#5DCAA5;--c3:#B4B2A9;--c4:#EF9F27;--c5:#ED93B1;--c6:#AFA9EC;
+  --tb0:#4A1B0C;--tb1:#042C53;--tb2:#04342C;--tb3:#2C2C2A;--tb4:#412402;--tb5:#4B1528;--tb6:#26215C;
+  --tt0:#F5C4B3;--tt1:#B5D4F4;--tt2:#9FE1CB;--tt3:#D3D1C7;--tt4:#FAC775;--tt5:#F4C0D1;--tt6:#CECBF6;
+}}
+body{font-family:var(--font-sans);background:var(--color-background-primary);color:var(--color-text-primary);padding:1.5rem;max-width:780px;margin:0 auto}
+h1{font-size:15px;font-weight:500;color:var(--color-text-secondary);margin-bottom:1.25rem;letter-spacing:.01em}
+.fl{font-size:10px;color:var(--color-text-tertiary);letter-spacing:.06em;margin-bottom:4px}
+.ht-t{cursor:pointer;padding:8px 4px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);text-align:center;font-size:11px;line-height:1.35;color:var(--color-text-secondary);background:var(--color-background-secondary);transition:border-color .12s,background .12s;user-select:none}
+.ht-t:hover:not(.act){border-color:var(--color-border-secondary);color:var(--color-text-primary)}
+.ht-t.act{background:var(--color-background-primary);font-weight:500}
+.pc{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 13px}
+.pl{font-size:10px;color:var(--color-text-tertiary);font-weight:500;margin-bottom:5px;letter-spacing:.05em}
+.pv{font-size:12px;color:var(--color-text-primary);line-height:1.6;font-family:var(--font-mono)}
+.wb{padding:4px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:11px;color:var(--color-text-secondary);cursor:pointer;background:none;transition:all .12s}
+.wb.wa{border-color:var(--color-border-primary);background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500}
+.br{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bn{font-size:11px;color:var(--color-text-secondary);width:100px;text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bt{flex:1;height:15px;background:var(--color-background-secondary);border-radius:2px;overflow:hidden}
+.bf{height:100%;border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.bv{font-size:11px;width:36px;flex-shrink:0;font-variant-numeric:tabular-nums;font-family:var(--font-mono)}
+.cr{display:flex;align-items:baseline;gap:6px;margin-bottom:5px}
+.ck{font-size:11px;color:var(--color-text-tertiary);min-width:88px;flex-shrink:0}
+.cv{font-size:11px;color:var(--color-text-primary);font-family:var(--font-mono)}
+.dot{display:inline-block;width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-right:5px;position:relative;top:1px}
+</style>
+</head>
+<body>
+<h1>Concurrent data structures — architecture &amp; performance explorer</h1>
+
+<div class="fl">HASH FAMILY</div>
+<div id="htabs" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px"></div>
+<div class="fl">RADIX FAMILY</div>
+<div id="rtabs" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-width:42%;margin-bottom:1rem"></div>
+
+<div id="dg" style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:10px;line-height:0"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+  <div class="pc"><div class="pl">READ PATH</div><div id="rp" class="pv"></div></div>
+  <div class="pc"><div class="pl">WRITE PATH</div><div id="wp" class="pv"></div></div>
+</div>
+<div id="perf" style="margin-bottom:1rem"></div>
+
+<!-- Comparison box — always visible -->
+<div style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:.85rem">
+    <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--color-background-secondary);color:var(--color-text-tertiary)">head-to-head</span>
+    <span style="font-size:11px;color:var(--color-text-secondary);font-weight:500">Best hash vs. best radix tree</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 0.5px 1fr;gap:0">
+    <div style="padding-right:1rem">
+      <div style="margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span style="font-size:13px;font-weight:500;color:var(--tt2)">Cuckoo optimistic</span>
+        <span style="font-size:10px;padding:1px 7px;border-radius:10px;background:var(--tb2);color:var(--tt2)">best hash</span>
+      </div>
+      <div class="cr"><span class="ck">peak</span><span class="cv" style="color:var(--c2);font-size:14px;font-weight:500">87.30 Mops/s</span></div>
+      <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:8px">uniform 95%R · 16 threads</div>
+      <div class="cr"><span class="ck">LLM trace</span><span class="cv">29.04 Mops/s</span></div>
+      <div class="cr"><span class="ck">p99 latency</span><span class="cv">1.36 µs</span></div>
+      <div class="cr"><span class="ck">read path</span><span class="cv">seqlock version validation</span></div>
+      <div class="cr"><span class="ck">write path</span><span class="cv">per-bucket + rare global disp.</span></div>
+      <div style="margin-top:10px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary)">
+        <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:.05em;margin-bottom:5px">BEST FOR</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px"><span class="dot" style="background:var(--c2)"></span>uniform / random key spaces</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px"><span class="dot" style="background:var(--c2)"></span>balanced read-write workloads</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px"><span class="dot" style="background:var(--c2)"></span>low-latency (p99 = 1.36 µs)</div>
+        <div style="font-size:11px;color:var(--color-text-secondary)"><span class="dot" style="background:var(--c2)"></span>LLM serving / trace workloads</div>
+      </div>
+    </div>
+    <div style="background:var(--color-border-tertiary)"></div>
+    <div style="padding-left:1rem">
+      <div style="margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span style="font-size:13px;font-weight:500;color:var(--tt6)">Radix tree fine</span>
+        <span style="font-size:10px;padding:1px 7px;border-radius:10px;background:var(--tb6);color:var(--tt6)">best radix</span>
+      </div>
+      <div class="cr"><span class="ck">peak</span><span class="cv" style="color:var(--c6);font-size:14px;font-weight:500">88.36 Mops/s</span></div>
+      <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:8px">pc=10 · 95%R · 8 threads</div>
+      <div class="cr"><span class="ck">thread scaling</span><span class="cv">3.81× (1T → 8T)</span></div>
+      <div class="cr"><span class="ck">vs. coarse @8T</span><span class="cv">13.47× faster</span></div>
+      <div class="cr"><span class="ck">read path</span><span class="cv">atomic walk + leaf mutex</span></div>
+      <div class="cr"><span class="ck">write path</span><span class="cv">atomic walk + CAS + leaf mutex</span></div>
+      <div style="margin-top:10px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary)">
+        <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:.05em;margin-bottom:5px">BEST FOR</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px"><span class="dot" style="background:var(--c6)"></span>shared-prefix key spaces</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px"><span class="dot" style="background:var(--c6)"></span>very read-heavy (&ge;95%R)</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px"><span class="dot" style="background:var(--c6)"></span>high thread counts (&ge;8T)</div>
+        <div style="font-size:11px;color:var(--color-text-secondary)"><span class="dot" style="background:var(--c6)"></span>trie-structured / prefix workloads</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const D=[
+  {n:'Coarse chain',st:'1 global lock',fam:'hash',
+   r:'Lock global mutex → traverse chain → unlock',
+   w:'Lock global mutex → insert / remove chain node → unlock',
+   mops:[6.67,8.14,7.01],p99:33.64},
+  {n:'Fine-grained',st:'N bucket locks',fam:'hash',
+   r:'Lock mutex[bucket_i] → traverse chain[i] → unlock',
+   w:'Lock mutex[bucket_i] → modify chain[i] → unlock',
+   mops:[61.79,45.23,31.51],p99:1.53},
+  {n:'Cuckoo opt',st:'Lock-free reads',fam:'hash',
+   r:'① Snapshot version[b]  ② Load key/val (no lock)  ③ Revalidate version[b]',
+   w:'Lock w_lock[b] → modify slots → if full: lock global disp_mutex → evict',
+   mops:[87.30,55.47,29.04],p99:1.36},
+  {n:'Cuckoo striped',st:'64 stripe locks',fam:'hash',
+   r:'Lock stripe[key%64] → search bucket → unlock',
+   w:'Lock stripe[key%64] → modify → if full: lock ALL 64 → BFS evict → unlock all',
+   mops:[5.98,5.90,7.08],p99:56.09},
+  {n:'Hopscotch',st:'1 global write lock',fam:'hash',
+   r:'① Snapshot version[b]  ② Check hop_info bitmap  ③ Scan neighborhood  ④ Revalidate',
+   w:'Lock global writer mutex → bubble-up displacement → unlock',
+   mops:[27.36,22.27,6.67],p99:60.84},
+  {n:'Radix coarse',st:'1 global lock',fam:'radix',
+   r:'Lock global mutex → walk 8 levels → read leaf.value → unlock',
+   w:'Lock global mutex → walk 8 levels → set leaf.value → unlock',
+   mops:[6.30,6.08,5.87,3.57]},
+  {n:'Radix fine',st:'Lock-free walk',fam:'radix',
+   r:'Acquire-load down 8 levels (no lock) → lock leaf.value_mu → read → unlock',
+   w:'Atomic walk + CAS for new children → lock leaf.value_mu → write → unlock',
+   mops:[88.36,81.86,82.45,53.41]},
+];
+const HWL=['Uniform 95%R','Zipfian 95%R','Trace 60%R'];
+const RWL=['pc=10 (high)','pc=100','pc=1k','pc=10k (low)'];
+let sel=2,hwsel=0,rwsel=1;
+
+function setTab(i){sel=i;render();}
+function setHwl(i){hwsel=i;render();}
+function setRwl(i){rwsel=i;render();}
+
+const AD=`<defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+
+function svgDiag(i){
+  if(i===0){
+    const bx=[102,196,290,384,478],bw=82,bh=44,bc=bx.map(x=>x+41);
+    const lY=22,lH=36,bY=108;
+    return `<svg width="100%" viewBox="0 0 680 172">${AD}
+<rect x="72" y="${lY}" width="536" height="${bY+bh+4-lY}" rx="10" stroke-dasharray="4 3" stroke-width="0.8" style="fill:var(--c0);fill-opacity:.08;stroke:var(--c0);stroke-opacity:.4"/>
+<rect x="240" y="${lY+4}" width="200" height="${lH-8}" rx="7" stroke-width="0.5" style="fill:var(--tb0);stroke:var(--tt0)"/>
+<text x="340" y="${lY+lH/2}" text-anchor="middle" dominant-baseline="central" style="font-size:12px;font-weight:500;fill:var(--tt0)">global mutex (1)</text>
+<line x1="340" y1="${lY+lH-4}" x2="340" y2="${bY-6}" stroke-width="0.8" style="stroke:var(--c0);stroke-opacity:.5" marker-end="url(#arr)"/>
+${bx.map((x,j)=>`<rect x="${x}" y="${bY}" width="${bw}" height="${bh}" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/><text x="${bc[j]}" y="${bY+bh/2}" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-family:var(--font-mono);fill:var(--color-text-secondary)">B${j}</text>`).join('')}
+<text x="576" y="${bY+bh/2}" dominant-baseline="central" style="font-size:14px;fill:var(--color-text-tertiary)">…</text></svg>`;
+  }
+  if(i===1){
+    const bx=[90,175,260,345,430,515],bw=76,bh=44,bc=bx.map(x=>x+38);
+    const lY=22,lH=38,bY=108;
+    return `<svg width="100%" viewBox="0 0 680 172">${AD}
+${bx.map((x,j)=>`<rect x="${x}" y="${lY}" width="${bw}" height="${lH}" rx="5" stroke-width="0.5" style="fill:var(--tb1);stroke:var(--tt1)"/><text x="${bc[j]}" y="${lY+lH/2}" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-family:var(--font-mono);fill:var(--tt1)">μ${j}</text>`).join('')}
+<text x="600" y="${lY+lH/2}" dominant-baseline="central" style="font-size:14px;fill:var(--color-text-tertiary)">…</text>
+${bx.map((x,j)=>`<line x1="${bc[j]}" y1="${lY+lH}" x2="${bc[j]}" y2="${bY-2}" stroke-width="0.7" style="stroke:var(--c1);stroke-opacity:.45" marker-end="url(#arr)"/>`).join('')}
+${bx.map((x,j)=>`<rect x="${x}" y="${bY}" width="${bw}" height="${bh}" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/><text x="${bc[j]}" y="${bY+bh/2}" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-family:var(--font-mono);fill:var(--color-text-secondary)">B${j}</text>`).join('')}
+<text x="600" y="${bY+bh/2}" dominant-baseline="central" style="font-size:14px;fill:var(--color-text-tertiary)">…</text></svg>`;
+  }
+  if(i===2){
+    const bx=[68,158,248,338,428],bw=78,bh=44,bc=bx.map(x=>x+39);
+    const vY=22,vH=36,bY=110;
+    return `<svg width="100%" viewBox="0 0 680 192">${AD}
+${bx.map((x,j)=>`<rect x="${x}" y="${vY}" width="${bw}" height="${vH}" rx="5" stroke-width="0.5" style="fill:var(--tb2);stroke:var(--tt2)"/><text x="${bc[j]}" y="${vY+12}" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--tt2)">version</text><text x="${bc[j]}" y="${vY+26}" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--tt2)">w_lock</text>`).join('')}
+${bx.map((x,j)=>`<line x1="${bc[j]}" y1="${vY+vH}" x2="${bc[j]}" y2="${bY-2}" stroke-width="0.7" style="stroke:var(--c2);stroke-opacity:.4" marker-end="url(#arr)"/>`).join('')}
+${bx.map((x,j)=>`<rect x="${x}" y="${bY}" width="${bw}" height="${bh}" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/><line x1="${Math.round(x+bw*.25)}" y1="${bY+8}" x2="${Math.round(x+bw*.25)}" y2="${bY+bh-8}" stroke-width="0.5" style="stroke:var(--color-border-tertiary)"/><line x1="${Math.round(x+bw*.5)}" y1="${bY+8}" x2="${Math.round(x+bw*.5)}" y2="${bY+bh-8}" stroke-width="0.5" style="stroke:var(--color-border-tertiary)"/><line x1="${Math.round(x+bw*.75)}" y1="${bY+8}" x2="${Math.round(x+bw*.75)}" y2="${bY+bh-8}" stroke-width="0.5" style="stroke:var(--color-border-tertiary)"/><text x="${bc[j]}" y="${bY+bh/2}" text-anchor="middle" dominant-baseline="central" style="font-size:10px;fill:var(--color-text-tertiary)">4 slots</text>`).join('')}
+<rect x="522" y="${bY}" width="118" height="${bh}" rx="5" stroke-dasharray="3 2" stroke-width="0.7" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<text x="581" y="${bY+14}" text-anchor="middle" dominant-baseline="central" style="font-size:10px;font-family:var(--font-mono);fill:var(--color-text-secondary)">disp_mutex</text>
+<text x="581" y="${bY+30}" text-anchor="middle" dominant-baseline="central" style="font-size:10px;fill:var(--color-text-tertiary)">(overflow path)</text>
+<line x1="506" y1="${bY+bh/2}" x2="520" y2="${bY+bh/2}" stroke-width="0.5" stroke-dasharray="3 2" style="stroke:var(--color-border-secondary)" marker-end="url(#arr)"/>
+<text x="68" y="180" style="font-size:11px;fill:var(--tt2)">reads: lock-free — seqlock version validation</text></svg>`;
+  }
+  if(i===3){
+    const gx=[52,148,244,340,436,532],gw=86,lH=38,bY=104;
+    const gc=gx.map(x=>x+43),sbw=Math.floor((gw-10)/2);
+    return `<svg width="100%" viewBox="0 0 680 172">${AD}
+${gx.map((x,j)=>`<rect x="${x}" y="22" width="${gw}" height="${lH}" rx="5" stroke-width="0.5" style="fill:var(--tb3);stroke:var(--tt3)"/><text x="${gc[j]}" y="${22+lH/2}" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-family:var(--font-mono);fill:var(--tt3)">L${j}</text><line x1="${gc[j]}" y1="${22+lH}" x2="${gc[j]}" y2="${bY-2}" stroke-width="0.7" style="stroke:var(--c3);stroke-opacity:.5" marker-end="url(#arr)"/><rect x="${x+3}" y="${bY}" width="${sbw}" height="40" rx="4" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/><rect x="${x+sbw+7}" y="${bY}" width="${sbw}" height="40" rx="4" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>`).join('')}
+<text x="340" y="160" text-anchor="middle" style="font-size:11px;fill:var(--color-text-tertiary)">6 of 64 stripe locks shown — N/64 buckets per stripe</text></svg>`;
+  }
+  if(i===4){
+    const bx=[68,160,252,344,436],bw=80,bh=44,bc=bx.map(x=>x+40);
+    const lY=22,lH=36,bY=110;
+    return `<svg width="100%" viewBox="0 0 680 184">${AD}
+<rect x="60" y="${lY}" width="560" height="${lH}" rx="10" stroke-dasharray="4 3" stroke-width="0.8" style="fill:var(--c4);fill-opacity:.08;stroke:var(--c4);stroke-opacity:.45"/>
+<rect x="215" y="${lY+4}" width="250" height="${lH-8}" rx="7" stroke-width="0.5" style="fill:var(--tb4);stroke:var(--tt4)"/>
+<text x="340" y="${lY+lH/2}" text-anchor="middle" dominant-baseline="central" style="font-size:12px;font-weight:500;fill:var(--tt4)">global writer mutex</text>
+<line x1="340" y1="${lY+lH}" x2="340" y2="${bY-8}" stroke-width="0.8" style="stroke:var(--c4);stroke-opacity:.5" marker-end="url(#arr)"/>
+${bx.map((x,j)=>`<rect x="${x}" y="${bY}" width="${bw}" height="${bh}" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/><text x="${bc[j]}" y="${bY+13}" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">v${j} | hop_info</text><text x="${bc[j]}" y="${bY+30}" text-anchor="middle" dominant-baseline="central" style="font-size:9px;fill:var(--color-text-secondary)">H=32 nbhd</text>`).join('')}
+<text x="524" y="${bY+bh/2}" dominant-baseline="central" style="font-size:14px;fill:var(--color-text-tertiary)">…</text>
+<text x="68" y="174" style="font-size:11px;fill:var(--tt4)">reads: lock-free via version + hop_info bitmap</text></svg>`;
+  }
+  if(i===5){
+    return `<svg width="100%" viewBox="0 0 680 222">${AD}
+<rect x="155" y="16" width="370" height="184" rx="10" stroke-dasharray="4 3" stroke-width="0.8" style="fill:var(--c5);fill-opacity:.08;stroke:var(--c5);stroke-opacity:.4"/>
+<rect x="240" y="20" width="200" height="30" rx="7" stroke-width="0.5" style="fill:var(--tb5);stroke:var(--tt5)"/>
+<text x="340" y="35" text-anchor="middle" dominant-baseline="central" style="font-size:12px;font-weight:500;fill:var(--tt5)">global mutex (1)</text>
+<rect x="265" y="62" width="150" height="36" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<text x="340" y="74" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--color-text-primary)">root</text>
+<text x="340" y="89" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">children[0..255]</text>
+<line x1="340" y1="98" x2="340" y2="114" stroke-width="0.8" style="stroke:var(--c5);stroke-opacity:.5" marker-end="url(#arr)"/>
+<rect x="265" y="114" width="150" height="36" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<text x="340" y="126" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--color-text-primary)">internal ×7</text>
+<text x="340" y="141" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">unique_ptr&lt;Node&gt;</text>
+<line x1="265" y1="132" x2="157" y2="132" stroke-width="0.5" stroke-dasharray="2 2" style="stroke:var(--color-border-secondary)"/>
+<text x="132" y="132" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:var(--color-text-tertiary)">···</text>
+<line x1="415" y1="132" x2="523" y2="132" stroke-width="0.5" stroke-dasharray="2 2" style="stroke:var(--color-border-secondary)"/>
+<text x="548" y="132" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:var(--color-text-tertiary)">···</text>
+<line x1="340" y1="150" x2="340" y2="164" stroke-width="0.8" style="stroke:var(--c5);stroke-opacity:.5" marker-end="url(#arr)"/>
+<rect x="265" y="164" width="150" height="36" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<text x="340" y="176" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--color-text-primary)">leaf</text>
+<text x="340" y="191" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">has_value · value</text>
+<text x="340" y="214" text-anchor="middle" style="font-size:11px;fill:var(--tt5)">8 levels · 256-way branching · byte decomposition of uint64</text></svg>`;
+  }
+  if(i===6){
+    return `<svg width="100%" viewBox="0 0 680 208">${AD}
+<rect x="265" y="22" width="150" height="38" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<text x="340" y="34" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--color-text-primary)">root</text>
+<text x="340" y="50" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">atomic&lt;Node*&gt; ×256</text>
+<line x1="340" y1="60" x2="340" y2="78" stroke-width="0.8" style="stroke:var(--c6);stroke-opacity:.5" marker-end="url(#arr)"/>
+<text x="353" y="70" style="font-size:9px;fill:var(--color-text-tertiary)">acquire-load</text>
+<rect x="265" y="78" width="150" height="38" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<text x="340" y="90" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--color-text-primary)">internal ×7</text>
+<text x="340" y="106" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">atomic&lt;Node*&gt; ×256</text>
+<line x1="416" y1="97" x2="483" y2="97" stroke-width="0.7" stroke-dasharray="3 2" style="stroke:var(--c6);stroke-opacity:.6" marker-end="url(#arr)"/>
+<rect x="485" y="85" width="148" height="26" rx="5" stroke-dasharray="3 2" stroke-width="0.7" style="fill:var(--tb6);stroke:var(--tt6)"/>
+<text x="559" y="98" text-anchor="middle" dominant-baseline="central" style="font-size:10px;font-family:var(--font-mono);fill:var(--tt6)">new child → CAS</text>
+<line x1="340" y1="116" x2="340" y2="132" stroke-width="0.8" style="stroke:var(--c6);stroke-opacity:.5" marker-end="url(#arr)"/>
+<rect x="265" y="132" width="150" height="48" rx="5" stroke-width="1" style="fill:var(--tb6);stroke:var(--tt6)"/>
+<text x="340" y="148" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--tt6)">leaf</text>
+<text x="340" y="163" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--tt6)">value_mu : mutex</text>
+<text x="340" y="176" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--tt6)">has_value · value</text>
+<text x="68" y="198" style="font-size:11px;fill:var(--tt6)">reads: lock-free walk — only leaf value_mu locks</text></svg>`;
+  }
+}
+
+function render(){
+  const d=D[sel];
+  const isRadix=d.fam==='radix';
+
+  document.getElementById('htabs').innerHTML=D.slice(0,5).map((x,i)=>`<div class="ht-t${i===sel?' act':''}" onclick="setTab(${i})" style="${i===sel?`border-color:var(--c${i});color:var(--tt${i})`:''}">`+
+    `<div style="margin-bottom:3px">${x.n}</div>`+
+    `<div style="font-size:10px;padding:2px 6px;border-radius:10px;display:inline-block;background:var(--tb${i});color:var(--tt${i})">${x.st}</div></div>`).join('');
+
+  document.getElementById('rtabs').innerHTML=D.slice(5).map((x,i)=>{
+    const idx=i+5;
+    return `<div class="ht-t${idx===sel?' act':''}" onclick="setTab(${idx})" style="${idx===sel?`border-color:var(--c${idx});color:var(--tt${idx})`:''}">`+
+      `<div style="margin-bottom:3px">${x.n}</div>`+
+      `<div style="font-size:10px;padding:2px 6px;border-radius:10px;display:inline-block;background:var(--tb${idx});color:var(--tt${idx})">${x.st}</div></div>`;
+  }).join('');
+
+  document.getElementById('dg').innerHTML=svgDiag(sel);
+  document.getElementById('rp').textContent=d.r;
+  document.getElementById('wp').textContent=d.w;
+
+  if(isRadix){
+    const mx=88.36;
+    const wselHTML=RWL.map((w,i)=>`<button class="wb${i===rwsel?' wa':''}" onclick="setRwl(${i})">${w}</button>`).join('');
+    document.getElementById('perf').innerHTML=`<div style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
+        <span style="font-size:11px;color:var(--color-text-secondary);font-weight:500">Throughput — Mops/s at 8T, 95%R (sharing sweep)</span>
+        <div style="display:flex;gap:6px">${wselHTML}</div>
+      </div>
+      <div class="br"><div class="bn" style="color:var(--color-text-tertiary)">cuckoo opt ✦</div><div class="bt"><div class="bf" style="width:${(87.30/mx*100).toFixed(1)}%;background:var(--c2);opacity:.4"></div></div><div class="bv" style="color:var(--color-text-tertiary)">87.30</div></div>
+      ${[5,6].map(idx=>`<div class="br"><div class="bn">${D[idx].n}</div><div class="bt"><div class="bf" style="width:${(D[idx].mops[rwsel]/mx*100).toFixed(1)}%;background:var(--c${idx})"></div></div><div class="bv" style="color:var(--c${idx})">${D[idx].mops[rwsel]}</div></div>`).join('')}
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px">✦ cuckoo opt shown as reference (uniform 95%R peak, 16T)</div>
+      <div style="margin-top:.85rem;padding-top:.75rem;border-top:0.5px solid var(--color-border-tertiary)">
+        <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px">Thread scaling — 95%R · pc=100</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="font-size:11px;padding:3px 10px;border-radius:10px;background:var(--tb5);color:var(--tt5);font-family:var(--font-mono)">coarse: 21.48 → 6.08 Mops/s (1T→8T, anti-scales)</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:10px;background:var(--tb6);color:var(--tt6);font-family:var(--font-mono)">fine: 21.46 → 81.86 Mops/s (3.81× speedup)</span>
+        </div>
+      </div>
+    </div>`;
+  } else {
+    const mx=87.30;
+    const wselHTML=HWL.map((w,i)=>`<button class="wb${i===hwsel?' wa':''}" onclick="setHwl(${i})">${w}</button>`).join('');
+    document.getElementById('perf').innerHTML=`<div style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
+        <span style="font-size:11px;color:var(--color-text-secondary);font-weight:500">Throughput — Mops/s at 16 threads</span>
+        <div style="display:flex;gap:6px">${wselHTML}</div>
+      </div>
+      ${D.slice(0,5).map((x,i)=>`<div class="br"><div class="bn">${x.n}</div><div class="bt"><div class="bf" style="width:${(x.mops[hwsel]/mx*100).toFixed(1)}%;background:var(--c${i})"></div></div><div class="bv" style="color:var(--c${i})">${x.mops[hwsel]}</div></div>`).join('')}
+      <div style="margin-top:.85rem;padding-top:.75rem;border-top:0.5px solid var(--color-border-tertiary)">
+        <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px">p99 latency — trace workload (60%R, 16T)</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${D.slice(0,5).map((x,i)=>`<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:var(--tb${i});color:var(--tt${i});font-variant-numeric:tabular-nums;white-space:nowrap;font-family:var(--font-mono)">${x.n}: ${x.p99} µs</span>`).join('')}</div>
+      </div>
+    </div>`;
+  }
+}
+render();
+</script>
+</body>
+</html>

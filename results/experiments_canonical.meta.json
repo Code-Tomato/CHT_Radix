@@ -1,0 +1,32 @@
+{
+  "csv": "results/experiments_canonical.csv",
+  "trace_path": "data/sharegpt.trace",
+  "trace_sha256": "2268c2ea3687c8c2be21491deac9c7fa9f1b1aa8f4357b7a97721ed628feb066",
+  "repeats": 3,
+  "base_seed": 42,
+  "ops_per_run": 500000,
+  "warmup_ops_per_thread": 5000,
+  "cache_resident_keys": 100000,
+  "git_sha": "2014b36",
+  "started_at": "2026-04-21T10:20:59Z",
+  "finished_at": "2026-04-21T10:22:20Z",
+  "tables": [
+    "chaining_coarse",
+    "chaining_fine",
+    "cuckoo_optimistic",
+    "cuckoo_striped",
+    "hopscotch"
+  ],
+  "threads": [
+    "1",
+    "2",
+    "4",
+    "8",
+    "16"
+  ],
+  "read_fractions": [
+    "1.0",
+    "0.5",
+    "0.1"
+  ]
+}

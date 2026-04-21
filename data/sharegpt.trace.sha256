@@ -1,0 +1,7 @@
+2268c2ea3687c8c2be21491deac9c7fa9f1b1aa8f4357b7a97721ed628feb066  sharegpt.trace
+# Content SHA256: hash over num_ops + all op records; stable across
+# regenerations of the same data. Skips the v2 provenance header whose
+# `generated_at` timestamp would otherwise make every regeneration byte-
+# distinct. Verify with:
+#   python3 src/trace/verify.py data/sharegpt.trace \
+#     --verify-sha=data/sharegpt.trace.sha256
