@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Concurrent Data Structure Explorer</title>
+<title>Concurrent Hash Tables &amp; Radix Trees Under LLM Workloads</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -25,286 +25,497 @@
   --tb0:#4A1B0C;--tb1:#042C53;--tb2:#04342C;--tb3:#2C2C2A;--tb4:#412402;--tb5:#4B1528;--tb6:#26215C;
   --tt0:#F5C4B3;--tt1:#B5D4F4;--tt2:#9FE1CB;--tt3:#D3D1C7;--tt4:#FAC775;--tt5:#F4C0D1;--tt6:#CECBF6;
 }}
-body{font-family:var(--font-sans);background:var(--color-background-primary);color:var(--color-text-primary);padding:1.5rem;max-width:780px;margin:0 auto}
-h1{font-size:15px;font-weight:500;color:var(--color-text-secondary);margin-bottom:1.25rem;letter-spacing:.01em}
-.fl{font-size:10px;color:var(--color-text-tertiary);letter-spacing:.06em;margin-bottom:4px}
-.ht-t{cursor:pointer;padding:8px 4px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);text-align:center;font-size:11px;line-height:1.35;color:var(--color-text-secondary);background:var(--color-background-secondary);transition:border-color .12s,background .12s;user-select:none}
-.ht-t:hover:not(.act){border-color:var(--color-border-secondary);color:var(--color-text-primary)}
-.ht-t.act{background:var(--color-background-primary);font-weight:500}
-.pc{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 13px}
-.pl{font-size:10px;color:var(--color-text-tertiary);font-weight:500;margin-bottom:5px;letter-spacing:.05em}
-.pv{font-size:12px;color:var(--color-text-primary);line-height:1.6;font-family:var(--font-mono)}
-.wb{padding:4px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:11px;color:var(--color-text-secondary);cursor:pointer;background:none;transition:all .12s}
-.wb.wa{border-color:var(--color-border-primary);background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500}
-.br{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.bn{font-size:11px;color:var(--color-text-secondary);width:100px;text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bt{flex:1;height:15px;background:var(--color-background-secondary);border-radius:2px;overflow:hidden}
-.bf{height:100%;border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
-.bv{font-size:11px;width:36px;flex-shrink:0;font-variant-numeric:tabular-nums;font-family:var(--font-mono)}
-.cr{display:flex;align-items:baseline;gap:6px;margin-bottom:5px}
-.ck{font-size:11px;color:var(--color-text-tertiary);min-width:88px;flex-shrink:0}
-.cv{font-size:11px;color:var(--color-text-primary);font-family:var(--font-mono)}
-.dot{display:inline-block;width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-right:5px;position:relative;top:1px}
+body{font-family:var(--font-sans);background:var(--color-background-primary);color:var(--color-text-primary);padding:2rem 1.5rem;max-width:820px;margin:0 auto}
+
+/* ── Hero ── */
+.hero{margin-bottom:2rem}
+.hero-tag{display:inline-block;font-size:10px;letter-spacing:.08em;color:var(--color-text-tertiary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);padding:3px 10px;border-radius:20px;margin-bottom:.75rem}
+.hero-title{font-size:22px;font-weight:600;line-height:1.3;color:var(--color-text-primary);margin-bottom:.5rem;letter-spacing:-.01em}
+.hero-authors{font-size:13px;color:var(--color-text-secondary);margin-bottom:.2rem}
+.hero-desc{font-size:13px;color:var(--color-text-secondary);line-height:1.65;max-width:680px;margin-top:.85rem}
+.hero-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:1rem}
+.hero-link{font-size:11px;padding:4px 12px;border:0.5px solid var(--color-border-secondary);border-radius:20px;color:var(--color-text-secondary);text-decoration:none;transition:border-color .12s,color .12s}
+.hero-link:hover{border-color:var(--color-border-primary);color:var(--color-text-primary)}
+
+/* ── Key findings ── */
+.findings-label{font-size:10px;color:var(--color-text-tertiary);letter-spacing:.07em;margin-bottom:.6rem}
+.findings-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:560px){.findings-grid{grid-template-columns:1fr}}
+.fc{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;display:flex;flex-direction:column}
+.fc-header{padding:11px 14px}
+.fc-num{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;font-family:var(--font-mono)}
+.fc-body{padding:11px 14px;background:var(--color-background-secondary);flex:1}
+.fc-desc{font-size:11px;color:var(--color-text-secondary);line-height:1.5}
+
+/* ── Structures interactive box ── */
+.struct-box{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:2rem}
+.struct-body{padding:20px 22px 10px;background:var(--color-background-primary);display:flex;flex-direction:column}
+.struct-body-diag{margin:0;aspect-ratio:680/240;width:100%}
+.struct-body-diag svg{display:block;width:100%;height:100%}
+.struct-body-label{font-size:10px;letter-spacing:.09em;margin-bottom:10px;font-weight:600}
+.struct-body-row{display:grid;grid-template-columns:minmax(160px,auto) 1fr;gap:28px;align-items:start;margin-bottom:8px}
+.struct-body-title{font-size:18px;font-weight:600;letter-spacing:-.01em}
+.struct-body-tag{display:inline-block;margin-top:8px;font-size:10px;padding:3px 8px;border-radius:10px;font-weight:500}
+.struct-body-desc{font-size:13px;color:var(--color-text-secondary);line-height:1.65}
+@media(max-width:640px){.struct-body-row{grid-template-columns:1fr;gap:10px}}
+.struct-selector{display:grid;grid-template-columns:5fr 2fr;background:var(--color-background-secondary);border-top:0.5px solid var(--color-border-tertiary)}
+.struct-side{padding:10px 14px}
+.struct-side+.struct-side{border-left:0.5px solid var(--color-border-tertiary)}
+.struct-side-label{font-size:9px;color:var(--color-text-tertiary);letter-spacing:.09em;margin-bottom:6px;font-weight:600;text-align:center;text-transform:uppercase}
+.struct-side-items{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
+.struct-btn{cursor:pointer;padding:4px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:14px;font-size:10px;line-height:1.3;color:var(--color-text-secondary);background:var(--color-background-primary);white-space:nowrap;user-select:none;transition:border-color .12s,color .12s,background .12s}
+.struct-btn:hover:not(.act){border-color:var(--color-border-secondary);color:var(--color-text-primary)}
+.struct-btn.act{font-weight:500}
+.struct-groups{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.struct-group{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.struct-group-btns{display:flex;gap:5px;justify-content:center}
+.struct-group-brace{align-self:stretch;height:5px;border:0.5px solid var(--color-border-secondary);border-top:none;border-radius:0 0 5px 5px;margin:0 10px}
+.struct-group-label{font-size:9px;color:var(--color-text-tertiary);letter-spacing:.06em;font-weight:500;text-transform:uppercase}
+@media(max-width:520px){
+  .struct-selector{grid-template-columns:1fr}
+  .struct-side+.struct-side{border-left:none;border-top:0.5px solid var(--color-border-tertiary)}
+  .struct-groups{flex-direction:column;align-items:stretch;gap:0}
+  .struct-side-label{margin-bottom:2px}
+  .struct-group{flex-direction:column;align-items:stretch;gap:6px;padding:10px 0}
+  .struct-group:first-child{padding-top:0}
+  .struct-group:last-child{padding-bottom:2px}
+  .struct-group+.struct-group{border-top:0.5px solid var(--color-border-tertiary)}
+  .struct-group-btns{justify-content:stretch;flex-wrap:nowrap;gap:6px}
+  .struct-group-btns .struct-btn{flex:1;text-align:center;border-radius:8px;padding:9px 8px;font-size:11px;white-space:normal}
+  .struct-group-brace{display:none}
+  .struct-group-label{font-size:9px;letter-spacing:.08em;text-align:center}
+  .struct-side-items{gap:6px;flex-wrap:nowrap}
+  .struct-side-items .struct-btn{flex:1;text-align:center;border-radius:8px;padding:9px 8px;font-size:11px}
+}
+
+/* ── Performance ── */
+.perf-h2h{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.1rem 1.25rem;margin-bottom:1rem}
+.perf-h2h-label{font-size:10px;letter-spacing:.09em;color:var(--color-text-tertiary);font-weight:600;margin-bottom:.85rem;text-transform:uppercase}
+.perf-h2h-grid{display:grid;grid-template-columns:1fr 0.5px 1fr;gap:0}
+.perf-h2h-side{padding:0 1.15rem}
+.perf-h2h-side:first-child{padding-left:0}
+.perf-h2h-side:last-child{padding-right:0}
+.perf-h2h-divider{background:var(--color-border-tertiary)}
+.perf-h2h-name{font-size:13px;font-weight:500;margin-bottom:.35rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.perf-h2h-pill{font-size:9.5px;padding:1px 7px;border-radius:10px;font-weight:500}
+.perf-h2h-num{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;font-family:var(--font-mono);letter-spacing:-.02em;line-height:1.15}
+.perf-h2h-unit{font-size:12px;color:var(--color-text-tertiary);margin-left:4px;font-family:var(--font-sans);font-weight:400;letter-spacing:0}
+.perf-h2h-ctx{font-size:11px;color:var(--color-text-tertiary);margin-top:.1rem;margin-bottom:.75rem}
+.perf-h2h-kv{font-size:11px;display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.perf-h2h-kv:last-of-type{border-bottom:none}
+.perf-h2h-kv-k{color:var(--color-text-tertiary)}
+.perf-h2h-kv-v{color:var(--color-text-primary);font-family:var(--font-mono);font-size:10.5px;text-align:right}
+@media(max-width:560px){
+  .perf-h2h-grid{grid-template-columns:1fr}
+  .perf-h2h-side{padding:0}
+  .perf-h2h-side:first-child{padding-bottom:1rem}
+  .perf-h2h-side:last-child{padding-top:1rem;border-top:0.5px solid var(--color-border-tertiary)}
+  .perf-h2h-divider{display:none}
+}
+.perf-panel{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.1rem;margin-bottom:1rem}
+.perf-panel-hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:.35rem}
+.perf-panel-title{font-size:13px;font-weight:600}
+.perf-panel-meta{font-size:10px;color:var(--color-text-tertiary);letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+.perf-panel-sub{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-bottom:.8rem}
+.perf-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.85rem}
+.perf-tab{cursor:pointer;padding:5px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:14px;font-size:10.5px;background:var(--color-background-primary);color:var(--color-text-secondary);user-select:none;transition:border-color .12s,color .12s,background .12s;line-height:1.25}
+.perf-tab:hover:not(.act){border-color:var(--color-border-secondary);color:var(--color-text-primary)}
+.perf-tab.act{border-color:var(--color-border-primary);color:var(--color-text-primary);background:var(--color-background-secondary);font-weight:500}
+.perf-tab-sub{color:var(--color-text-tertiary);margin-left:5px;font-size:9.5px}
+.perf-tab.act .perf-tab-sub{color:var(--color-text-secondary)}
+.perf-bar{display:grid;grid-template-columns:minmax(108px,128px) 1fr minmax(88px,auto);gap:12px;align-items:center;padding:5px 0;font-size:11.5px}
+.perf-bar-name{color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.perf-bar-track{background:var(--color-background-secondary);height:10px;border-radius:5px;overflow:hidden;min-width:40px}
+.perf-bar-fill{display:block;height:100%;border-radius:5px;transition:width .25s}
+.perf-bar-val{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:11px;text-align:right;white-space:nowrap}
+.perf-bar-val-unit{color:var(--color-text-tertiary);font-size:9.5px;margin-left:2px}
+.perf-bar.ref .perf-bar-name,.perf-bar.ref .perf-bar-val{color:var(--color-text-tertiary)}
+.perf-foot{margin-top:.75rem;padding-top:.7rem;border-top:0.5px solid var(--color-border-tertiary)}
+.perf-foot-label{font-size:12px;color:var(--color-text-primary);font-weight:600;margin-bottom:5px;letter-spacing:-.005em}
+.perf-foot-desc{font-size:11.5px;color:var(--color-text-secondary);line-height:1.5;margin-bottom:9px}
+.perf-foot-desc em{font-style:italic;color:var(--color-text-primary);font-weight:500}
+.perf-chips{display:flex;flex-wrap:wrap;gap:5px}
+.perf-chip{font-size:10.5px;padding:3px 10px;border-radius:10px;font-family:var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.perf-note{font-size:10.5px;color:var(--color-text-tertiary);margin-top:6px;font-style:italic}
+@media(max-width:480px){
+  .perf-bar{grid-template-columns:minmax(86px,1fr) minmax(0,1.4fr) auto;gap:8px;font-size:11px}
+}
+
+/* ── Divider ── */
+.section-divider{display:flex;align-items:center;gap:10px;margin:2rem 0 1rem}
+.section-divider-label{font-size:13px;font-weight:700;color:var(--color-text-primary);letter-spacing:.04em;white-space:nowrap}
+.section-divider-line{flex:1;height:0.5px;background:var(--color-border-secondary)}
+.section-hint{font-size:12px;color:var(--color-text-tertiary);margin-bottom:1rem}
+
+@media(max-width:480px){
+  body{padding:1.5rem 1rem}
+  .hero-title{font-size:18px}
+}
 </style>
 </head>
 <body>
-<h1>Concurrent data structures — architecture &amp; performance explorer</h1>
 
-<div class="fl">HASH FAMILY</div>
-<div id="htabs" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px"></div>
-<div class="fl">RADIX FAMILY</div>
-<div id="rtabs" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-width:42%;margin-bottom:1rem"></div>
-
-<div id="dg" style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:10px;line-height:0"></div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
-  <div class="pc"><div class="pl">READ PATH</div><div id="rp" class="pv"></div></div>
-  <div class="pc"><div class="pl">WRITE PATH</div><div id="wp" class="pv"></div></div>
-</div>
-<div id="perf" style="margin-bottom:1rem"></div>
-
-<!-- Comparison box — always visible -->
-<div style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem">
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:.85rem">
-    <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--color-background-secondary);color:var(--color-text-tertiary)">head-to-head</span>
-    <span style="font-size:11px;color:var(--color-text-secondary);font-weight:500">Best hash vs. best radix tree</span>
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-tag">EE 361C · Multicore Algorithms · UT Austin · Spring 2026</div>
+  <div class="hero-title">Concurrent Hash Tables and Radix Trees<br>Under LLM-Derived Workloads</div>
+  <div class="hero-authors">Nathan Lemma &nbsp;·&nbsp; Joshua Chikosha &nbsp;·&nbsp; Yonatan Teshome</div>
+  <div class="hero-links">
+    <a class="hero-link" href="https://github.com/Code-Tomato/CHT_Radix">GitHub</a>
+    <a class="hero-link" href="../paper/CHT_Radix.pdf" target="_blank">Paper (PDF)</a>
+    <a class="hero-link" href="../results/experiments_canonical.csv">Canonical data (CSV)</a>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 0.5px 1fr;gap:0">
-    <div style="padding-right:1rem">
-      <div style="margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <span style="font-size:13px;font-weight:500;color:var(--tt2)">Cuckoo optimistic</span>
-        <span style="font-size:10px;padding:1px 7px;border-radius:10px;background:var(--tb2);color:var(--tt2)">best hash</span>
-      </div>
-      <div class="cr"><span class="ck">peak</span><span class="cv" style="color:var(--c2);font-size:14px;font-weight:500">87.30 Mops/s</span></div>
-      <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:8px">uniform 95%R · 16 threads</div>
-      <div class="cr"><span class="ck">LLM trace</span><span class="cv">29.04 Mops/s</span></div>
-      <div class="cr"><span class="ck">p99 latency</span><span class="cv">1.36 µs</span></div>
-      <div class="cr"><span class="ck">read path</span><span class="cv">seqlock version validation</span></div>
-      <div class="cr"><span class="ck">write path</span><span class="cv">per-bucket + rare global disp.</span></div>
-      <div style="margin-top:10px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary)">
-        <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:.05em;margin-bottom:5px">BEST FOR</div>
-        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px"><span class="dot" style="background:var(--c2)"></span>uniform / random key spaces</div>
-        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px"><span class="dot" style="background:var(--c2)"></span>balanced read-write workloads</div>
-        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px"><span class="dot" style="background:var(--c2)"></span>low-latency (p99 = 1.36 µs)</div>
-        <div style="font-size:11px;color:var(--color-text-secondary)"><span class="dot" style="background:var(--c2)"></span>LLM serving / trace workloads</div>
-      </div>
+  <div class="section-divider" style="margin-top:1.25rem;margin-bottom:.75rem"><span class="section-divider-label">OVERVIEW</span><span class="section-divider-line"></span></div>
+  <p class="hero-desc">
+    When you're using a language model like ChatGPT, the server often recognizes the beginning of your prompt,
+    like system instructions, common question patterns and shared context, before it's even finished typing.
+    AI servers cache that repeated text so they don't have to recompute it every time. The problem is, many
+    threads are accessing this cache at the same time, and if the data structure isn't right, it can become a
+    major bottleneck.
+    <br><br>
+    We built <strong>7 different data structures</strong> that all do the same job, fast lookups under heavy
+    simultaneous access. We measured which is fastest. The answer turns out to depend heavily on what kind
+    of traffic you throw at it.
+  </p>
+</div>
+
+<!-- ── Key findings ── -->
+<div class="section-divider"><span class="section-divider-label">KEY FINDINGS</span><span class="section-divider-line"></span></div>
+<div class="findings-grid">
+  <div class="fc">
+    <div class="fc-header" style="background:var(--tb2)">
+      <div class="fc-num" style="color:var(--tt2)">The winner changes</div>
     </div>
-    <div style="background:var(--color-border-tertiary)"></div>
-    <div style="padding-left:1rem">
-      <div style="margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <span style="font-size:13px;font-weight:500;color:var(--tt6)">Radix tree fine</span>
-        <span style="font-size:10px;padding:1px 7px;border-radius:10px;background:var(--tb6);color:var(--tt6)">best radix</span>
-      </div>
-      <div class="cr"><span class="ck">peak</span><span class="cv" style="color:var(--c6);font-size:14px;font-weight:500">88.36 Mops/s</span></div>
-      <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:8px">pc=10 · 95%R · 8 threads</div>
-      <div class="cr"><span class="ck">thread scaling</span><span class="cv">3.81× (1T → 8T)</span></div>
-      <div class="cr"><span class="ck">vs. coarse @8T</span><span class="cv">13.47× faster</span></div>
-      <div class="cr"><span class="ck">read path</span><span class="cv">atomic walk + leaf mutex</span></div>
-      <div class="cr"><span class="ck">write path</span><span class="cv">atomic walk + CAS + leaf mutex</span></div>
-      <div style="margin-top:10px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary)">
-        <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:.05em;margin-bottom:5px">BEST FOR</div>
-        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px"><span class="dot" style="background:var(--c6)"></span>shared-prefix key spaces</div>
-        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px"><span class="dot" style="background:var(--c6)"></span>very read-heavy (&ge;95%R)</div>
-        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px"><span class="dot" style="background:var(--c6)"></span>high thread counts (&ge;8T)</div>
-        <div style="font-size:11px;color:var(--color-text-secondary)"><span class="dot" style="background:var(--c6)"></span>trie-structured / prefix workloads</div>
-      </div>
+    <div class="fc-body">
+      <div class="fc-desc">On standard random-access benchmarks, one design (cuckoo hashing) wins easily. Switch to real ChatGPT conversation data (which has more writes mixed in) and a simpler design (fine-grained chaining) takes the lead</div>
     </div>
+  </div>
+  <div class="fc">
+    <div class="fc-header" style="background:var(--tb6)">
+      <div class="fc-num" style="color:var(--tt6)">13x faster</div>
+    </div>
+    <div class="fc-body">
+      <div class="fc-desc">We took the exact same tree structure and only changed how threads take turns accessing it. One version makes every thread wait in a single line. The other lets threads navigate freely. Result: 13x more throughput at 8 threads.</div>
+    </div>
+  </div>
+  <div class="fc">
+    <div class="fc-header" style="background:var(--tb4)">
+      <div class="fc-num" style="color:var(--tt4)">ShareGPT Tests</div>
+    </div>
+    <div class="fc-body">
+      <div class="fc-desc">A design that looks great on random keys can be the worst choice for real AI traffic. You can't pick the data structure and the thread strategy independently; they interact, and both have to match the workload.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Structures ── -->
+<div class="section-divider"><span class="section-divider-label">THE STRUCTURES</span><span class="section-divider-line"></span></div>
+<p class="section-hint">Pick any of the 7 designs below to see how it works.</p>
+<div class="struct-box">
+  <div class="struct-body">
+    <div class="struct-body-label" id="structLabel"></div>
+    <div class="struct-body-row">
+      <div>
+        <div class="struct-body-title" id="structTitle"></div>
+        <div class="struct-body-tag" id="structTag"></div>
+      </div>
+      <div class="struct-body-desc" id="structDesc"></div>
+    </div>
+    <div class="struct-body-diag" id="structDiag"></div>
+  </div>
+  <div class="struct-selector">
+    <div class="struct-side">
+      <div class="struct-side-label">Hash tables · 5 variants</div>
+      <div class="struct-groups" id="structHashBtns"></div>
+    </div>
+    <div class="struct-side">
+      <div class="struct-side-label">Radix trees · 2 variants</div>
+      <div class="struct-side-items" id="structRadixBtns"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Performance ── -->
+<div class="section-divider"><span class="section-divider-label">PERFORMANCE</span><span class="section-divider-line"></span></div>
+<p class="section-hint">Two winners and how every variant stacks up across workloads.</p>
+
+<div class="perf-h2h">
+  <div class="perf-h2h-label">Best hash vs. best tree</div>
+  <div class="perf-h2h-grid">
+    <div class="perf-h2h-side">
+      <div class="perf-h2h-name" style="color:var(--tt2)">Cuckoo optimistic <span class="perf-h2h-pill" style="background:var(--tb2);color:var(--tt2)">hash winner</span></div>
+      <div class="perf-h2h-num" style="color:var(--c2)">87.30<span class="perf-h2h-unit">Mops/s</span></div>
+      <div class="perf-h2h-ctx">peak · uniform random keys · 95% reads · 16 threads</div>
+      <div class="perf-h2h-kv"><span class="perf-h2h-kv-k">LLM trace throughput</span><span class="perf-h2h-kv-v">29.04 Mops/s</span></div>
+      <div class="perf-h2h-kv"><span class="perf-h2h-kv-k">p99 latency</span><span class="perf-h2h-kv-v">1.36 µs</span></div>
+      <div class="perf-h2h-kv"><span class="perf-h2h-kv-k">read path</span><span class="perf-h2h-kv-v">seqlock - no lock</span></div>
+      <div class="perf-h2h-kv"><span class="perf-h2h-kv-k">write path</span><span class="perf-h2h-kv-v">per-bucket + rare global</span></div>
+    </div>
+    <div class="perf-h2h-divider"></div>
+    <div class="perf-h2h-side">
+      <div class="perf-h2h-name" style="color:var(--tt6)">Radix fine <span class="perf-h2h-pill" style="background:var(--tb6);color:var(--tt6)">tree winner</span></div>
+      <div class="perf-h2h-num" style="color:var(--c6)">88.36<span class="perf-h2h-unit">Mops/s</span></div>
+      <div class="perf-h2h-ctx">peak · high key sharing · 95% reads · 8 threads</div>
+      <div class="perf-h2h-kv"><span class="perf-h2h-kv-k">thread scaling</span><span class="perf-h2h-kv-v">3.81x (1T → 8T)</span></div>
+      <div class="perf-h2h-kv"><span class="perf-h2h-kv-k">vs. coarse @ 8T</span><span class="perf-h2h-kv-v">13.47x faster</span></div>
+      <div class="perf-h2h-kv"><span class="perf-h2h-kv-k">read path</span><span class="perf-h2h-kv-v">atomic walk + leaf lock</span></div>
+      <div class="perf-h2h-kv"><span class="perf-h2h-kv-k">write path</span><span class="perf-h2h-kv-v">atomic walk + CAS + leaf lock</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="perf-panel">
+  <div class="perf-panel-hd">
+    <span class="perf-panel-title">Hash table throughput</span>
+    <span class="perf-panel-meta">Mops/s · 16 threads</span>
+  </div>
+  <p class="perf-panel-sub">Picking a workload changes the winner. Random keys favor cuckoo's lock-free reads; real ChatGPT traces have enough writes that fine-grained chaining pulls ahead.</p>
+  <div class="perf-tabs" id="hashTabs"></div>
+  <div id="hashBars"></div>
+  <div class="perf-foot">
+    <div class="perf-foot-label">Tail latency on the LLM trace: how slow is the slowest 1%?</div>
+    <p class="perf-foot-desc">Throughput can look close while tail latency diverges 40x. Two variants keep the 1-in-100 request under 2 µs; the other three stall 30–60 µs at the tail.</p>
+    <div class="perf-chips" id="hashChips"></div>
+  </div>
+</div>
+
+<div class="perf-panel">
+  <div class="perf-panel-hd">
+    <span class="perf-panel-title">Radix tree throughput</span>
+    <span class="perf-panel-meta">Mops/s · 8 threads · 95% reads</span>
+  </div>
+  <p class="perf-panel-sub">Same tree shape. Only the thread-coordination strategy differs. As keys share more prefixes (higher sharing), contention rises and the gap widens dramatically.</p>
+  <div class="perf-tabs" id="radixTabs"></div>
+  <div id="radixBars"></div>
+  <div class="perf-foot">
+    <div class="perf-foot-label">Does adding threads actually help? (1 thread → 8 threads)</div>
+    <p class="perf-foot-desc">Same tree, same data. Fine scales 3.8x as threads walk the tree independently. Coarse gets <em>slower</em>: threads pile up at the single lock. That's the entire 13x gap at 8 threads.</p>
+    <div class="perf-chips">
+      <span class="perf-chip" style="background:var(--tb6);color:var(--tt6)">Fine: 21.5 → 81.9 Mops/s &nbsp;·&nbsp; 3.8x faster</span>
+      <span class="perf-chip" style="background:var(--tb5);color:var(--tt5)">Coarse: 21.5 → 6.1 Mops/s &nbsp;·&nbsp; 3.5x slower</span>
+    </div>
+    <div class="perf-note">Cuckoo optimistic shown as reference. It's the hash winner, included to frame the tree numbers against the best hash table.</div>
   </div>
 </div>
 
 <script>
 const D=[
-  {n:'Coarse chain',st:'1 global lock',fam:'hash',
-   r:'Lock global mutex → traverse chain → unlock',
-   w:'Lock global mutex → insert / remove chain node → unlock',
-   mops:[6.67,8.14,7.01],p99:33.64},
-  {n:'Fine-grained',st:'N bucket locks',fam:'hash',
-   r:'Lock mutex[bucket_i] → traverse chain[i] → unlock',
-   w:'Lock mutex[bucket_i] → modify chain[i] → unlock',
-   mops:[61.79,45.23,31.51],p99:1.53},
-  {n:'Cuckoo opt',st:'Lock-free reads',fam:'hash',
-   r:'① Snapshot version[b]  ② Load key/val (no lock)  ③ Revalidate version[b]',
-   w:'Lock w_lock[b] → modify slots → if full: lock global disp_mutex → evict',
-   mops:[87.30,55.47,29.04],p99:1.36},
-  {n:'Cuckoo striped',st:'64 stripe locks',fam:'hash',
-   r:'Lock stripe[key%64] → search bucket → unlock',
-   w:'Lock stripe[key%64] → modify → if full: lock ALL 64 → BFS evict → unlock all',
-   mops:[5.98,5.90,7.08],p99:56.09},
-  {n:'Hopscotch',st:'1 global write lock',fam:'hash',
-   r:'① Snapshot version[b]  ② Check hop_info bitmap  ③ Scan neighborhood  ④ Revalidate',
-   w:'Lock global writer mutex → bubble-up displacement → unlock',
-   mops:[27.36,22.27,6.67],p99:60.84},
-  {n:'Radix coarse',st:'1 global lock',fam:'radix',
-   r:'Lock global mutex → walk 8 levels → read leaf.value → unlock',
-   w:'Lock global mutex → walk 8 levels → set leaf.value → unlock',
-   mops:[6.30,6.08,5.87,3.57]},
-  {n:'Radix fine',st:'Lock-free walk',fam:'radix',
-   r:'Acquire-load down 8 levels (no lock) → lock leaf.value_mu → read → unlock',
-   w:'Atomic walk + CAS for new children → lock leaf.value_mu → write → unlock',
-   mops:[88.36,81.86,82.45,53.41]},
+  {n:'Coarse-grained chaining',short:'Coarse',st:'1 global lock',fam:'hash',
+   explain:'Picture a library of shelves. Each shelf a hash bucket and each book a unique key. Now imagine one locked door for the whole library. Only one person can read at a time, no matter which shelf they want. That\'s the single-threaded baseline. Correct, simple, and the design every other variant has to beat.'},
+  {n:'Fine-grained chaining',short:'Fine',st:'N bucket locks',fam:'hash',
+   explain:'Same library of shelves, but now every shelf has its own door with its own key. Threads hitting different shelves never wait on each other, and writes only block the one shelf being changed. This ended up being our surprise winner on real traces. Simpler per-bucket locks beat fancy lock-free tricks.'},
+  {n:'Cuckoo optimistic',short:'Optimistic',st:'Lock-free reads',fam:'hash',
+   explain:'Every key gets two possible homes. Home A and Home B each with 4 slots. Readers don\'t knock, they peek: snapshot the home\'s version tag, load the slots, then re-check the tag didn\'t change. No lock on the read path but locks each writer. Fastest on random read-heavy traffic, 87 Mops/s at 16 threads.'},
+  {n:'Cuckoo striped',short:'Striped',st:'64 stripe locks',fam:'hash',
+   explain:'Same two-homes idea, but buckets are grouped into 64 "wings" that share a lock. Most operations just grab one wing and go. The catch: when a bucket overflows, the writer has to trace a displacement path across wings and grab all 64 at once to reshuffle safely. That global pause crushes throughput.'},
+  {n:'Hopscotch',short:'Hopscotch',st:'1 global write lock',fam:'hash',
+   explain:'Every key lives within 32 slots of its home bucket, like a neighborhood. A small bitmap at the home acts as a quick map, pointing straight at which slots hold real keys. Readers jump to the right slot with no chase and no lock. Writers all share a single global lock. tldr: reads scale but writes bottleneck.'},
+  {n:'Coarse-grained radix tree',short:'Coarse',st:'1 global lock',fam:'radix',
+   explain:'A 256-way byte trie, 8 levels deep. Keys that share a prefix share a path, which makes it perfect for LLM caches where prompts start with the same system text. Each level is a "which byte next?" decision. But one door guards the whole tree. Every thread takes its turn, no matter which branch they want.'},
+  {n:'Fine-grained radix tree',short:'Fine',st:'Lock-free walk',fam:'radix',
+   explain:'Same tree shape, but now there\'s no door. Anyone walks right in. Child pointers are atomic, so readers traverse 8 levels with zero locking. Writers install new branches with compare-and-swap, and only the final leaf box carries a lock. Scales 3.8x from 1→8 threads and runs 13x faster than the coarse version.'},
 ];
-const HWL=['Uniform 95%R','Zipfian 95%R','Trace 60%R'];
-const RWL=['pc=10 (high)','pc=100','pc=1k','pc=10k (low)'];
-let sel=2,hwsel=0,rwsel=1;
+let sel=2;
 
-function setTab(i){sel=i;render();}
-function setHwl(i){hwsel=i;render();}
-function setRwl(i){rwsel=i;render();}
+function setTab(i){sel=i;renderStruct();}
 
-const AD=`<defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+const DIAGS=[
+// 0: coarse chain - one gate + library interior
+`<svg width="100%" viewBox="0 0 680 220" preserveAspectRatio="xMidYMin meet"><defs><marker id="arr0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+<g style="fill:var(--color-text-tertiary);fill-opacity:.75"><circle cx="38" cy="66" r="11"/><circle cx="38" cy="100" r="11"/><circle cx="38" cy="134" r="11"/></g>
+<text x="38" y="178" text-anchor="middle" style="font-size:9px;fill:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.08em">waiting</text>
+<line x1="54" y1="100" x2="114" y2="100" stroke-width="0.9" style="stroke:var(--c0);stroke-opacity:.55" marker-end="url(#arr0)"/>
+<rect x="120" y="55" width="92" height="92" rx="10" stroke-width="0.5" style="fill:var(--tb0);stroke:var(--tt0)"/>
+<path d="M155 92 L155 82 A11 11 0 0 1 177 82 L177 92" fill="none" stroke-width="2" style="stroke:var(--tt0)"/>
+<rect x="148" y="92" width="36" height="24" rx="3" style="fill:var(--tt0)"/>
+<text x="166" y="135" text-anchor="middle" style="font-size:11px;font-weight:500;fill:var(--tt0)">ONE KEY</text>
+<text x="166" y="172" text-anchor="middle" style="font-size:10px;fill:var(--color-text-tertiary)">one at a time</text>
+<rect x="240" y="42" width="402" height="142" rx="10" stroke-dasharray="4 3" stroke-width="0.8" style="fill:var(--c0);fill-opacity:.06;stroke:var(--c0);stroke-opacity:.38"/>
+<text x="441" y="58" text-anchor="middle" style="font-size:9px;fill:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.08em">the whole library</text>
+${[0,1,2,3,4].map(i=>`<g transform="translate(${260+i*76},76)"><rect width="62" height="100" rx="4" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/><line x1="8" y1="26" x2="54" y2="26" stroke-width="0.5" style="stroke:var(--color-border-tertiary)"/><line x1="8" y1="50" x2="54" y2="50" stroke-width="0.5" style="stroke:var(--color-border-tertiary)"/><line x1="8" y1="74" x2="54" y2="74" stroke-width="0.5" style="stroke:var(--color-border-tertiary)"/></g>`).join('')}
+<text x="340" y="208" text-anchor="middle" style="font-size:11px;fill:var(--tt0)">one lock guards every shelf</text></svg>`,
 
-function svgDiag(i){
-  if(i===0){
-    const bx=[102,196,290,384,478],bw=82,bh=44,bc=bx.map(x=>x+41);
-    const lY=22,lH=36,bY=108;
-    return `<svg width="100%" viewBox="0 0 680 172">${AD}
-<rect x="72" y="${lY}" width="536" height="${bY+bh+4-lY}" rx="10" stroke-dasharray="4 3" stroke-width="0.8" style="fill:var(--c0);fill-opacity:.08;stroke:var(--c0);stroke-opacity:.4"/>
-<rect x="240" y="${lY+4}" width="200" height="${lH-8}" rx="7" stroke-width="0.5" style="fill:var(--tb0);stroke:var(--tt0)"/>
-<text x="340" y="${lY+lH/2}" text-anchor="middle" dominant-baseline="central" style="font-size:12px;font-weight:500;fill:var(--tt0)">global mutex (1)</text>
-<line x1="340" y1="${lY+lH-4}" x2="340" y2="${bY-6}" stroke-width="0.8" style="stroke:var(--c0);stroke-opacity:.5" marker-end="url(#arr)"/>
-${bx.map((x,j)=>`<rect x="${x}" y="${bY}" width="${bw}" height="${bh}" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/><text x="${bc[j]}" y="${bY+bh/2}" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-family:var(--font-mono);fill:var(--color-text-secondary)">B${j}</text>`).join('')}
-<text x="576" y="${bY+bh/2}" dominant-baseline="central" style="font-size:14px;fill:var(--color-text-tertiary)">…</text></svg>`;
-  }
-  if(i===1){
-    const bx=[90,175,260,345,430,515],bw=76,bh=44,bc=bx.map(x=>x+38);
-    const lY=22,lH=38,bY=108;
-    return `<svg width="100%" viewBox="0 0 680 172">${AD}
-${bx.map((x,j)=>`<rect x="${x}" y="${lY}" width="${bw}" height="${lH}" rx="5" stroke-width="0.5" style="fill:var(--tb1);stroke:var(--tt1)"/><text x="${bc[j]}" y="${lY+lH/2}" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-family:var(--font-mono);fill:var(--tt1)">μ${j}</text>`).join('')}
-<text x="600" y="${lY+lH/2}" dominant-baseline="central" style="font-size:14px;fill:var(--color-text-tertiary)">…</text>
-${bx.map((x,j)=>`<line x1="${bc[j]}" y1="${lY+lH}" x2="${bc[j]}" y2="${bY-2}" stroke-width="0.7" style="stroke:var(--c1);stroke-opacity:.45" marker-end="url(#arr)"/>`).join('')}
-${bx.map((x,j)=>`<rect x="${x}" y="${bY}" width="${bw}" height="${bh}" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/><text x="${bc[j]}" y="${bY+bh/2}" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-family:var(--font-mono);fill:var(--color-text-secondary)">B${j}</text>`).join('')}
-<text x="600" y="${bY+bh/2}" dominant-baseline="central" style="font-size:14px;fill:var(--color-text-tertiary)">…</text></svg>`;
-  }
-  if(i===2){
-    const bx=[68,158,248,338,428],bw=78,bh=44,bc=bx.map(x=>x+39);
-    const vY=22,vH=36,bY=110;
-    return `<svg width="100%" viewBox="0 0 680 192">${AD}
-${bx.map((x,j)=>`<rect x="${x}" y="${vY}" width="${bw}" height="${vH}" rx="5" stroke-width="0.5" style="fill:var(--tb2);stroke:var(--tt2)"/><text x="${bc[j]}" y="${vY+12}" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--tt2)">version</text><text x="${bc[j]}" y="${vY+26}" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--tt2)">w_lock</text>`).join('')}
-${bx.map((x,j)=>`<line x1="${bc[j]}" y1="${vY+vH}" x2="${bc[j]}" y2="${bY-2}" stroke-width="0.7" style="stroke:var(--c2);stroke-opacity:.4" marker-end="url(#arr)"/>`).join('')}
-${bx.map((x,j)=>`<rect x="${x}" y="${bY}" width="${bw}" height="${bh}" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/><line x1="${Math.round(x+bw*.25)}" y1="${bY+8}" x2="${Math.round(x+bw*.25)}" y2="${bY+bh-8}" stroke-width="0.5" style="stroke:var(--color-border-tertiary)"/><line x1="${Math.round(x+bw*.5)}" y1="${bY+8}" x2="${Math.round(x+bw*.5)}" y2="${bY+bh-8}" stroke-width="0.5" style="stroke:var(--color-border-tertiary)"/><line x1="${Math.round(x+bw*.75)}" y1="${bY+8}" x2="${Math.round(x+bw*.75)}" y2="${bY+bh-8}" stroke-width="0.5" style="stroke:var(--color-border-tertiary)"/><text x="${bc[j]}" y="${bY+bh/2}" text-anchor="middle" dominant-baseline="central" style="font-size:10px;fill:var(--color-text-tertiary)">4 slots</text>`).join('')}
-<rect x="522" y="${bY}" width="118" height="${bh}" rx="5" stroke-dasharray="3 2" stroke-width="0.7" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
-<text x="581" y="${bY+14}" text-anchor="middle" dominant-baseline="central" style="font-size:10px;font-family:var(--font-mono);fill:var(--color-text-secondary)">disp_mutex</text>
-<text x="581" y="${bY+30}" text-anchor="middle" dominant-baseline="central" style="font-size:10px;fill:var(--color-text-tertiary)">(overflow path)</text>
-<line x1="506" y1="${bY+bh/2}" x2="520" y2="${bY+bh/2}" stroke-width="0.5" stroke-dasharray="3 2" style="stroke:var(--color-border-secondary)" marker-end="url(#arr)"/>
-<text x="68" y="180" style="font-size:11px;fill:var(--tt2)">reads: lock-free — seqlock version validation</text></svg>`;
-  }
-  if(i===3){
-    const gx=[52,148,244,340,436,532],gw=86,lH=38,bY=104;
-    const gc=gx.map(x=>x+43),sbw=Math.floor((gw-10)/2);
-    return `<svg width="100%" viewBox="0 0 680 172">${AD}
-${gx.map((x,j)=>`<rect x="${x}" y="22" width="${gw}" height="${lH}" rx="5" stroke-width="0.5" style="fill:var(--tb3);stroke:var(--tt3)"/><text x="${gc[j]}" y="${22+lH/2}" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-family:var(--font-mono);fill:var(--tt3)">L${j}</text><line x1="${gc[j]}" y1="${22+lH}" x2="${gc[j]}" y2="${bY-2}" stroke-width="0.7" style="stroke:var(--c3);stroke-opacity:.5" marker-end="url(#arr)"/><rect x="${x+3}" y="${bY}" width="${sbw}" height="40" rx="4" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/><rect x="${x+sbw+7}" y="${bY}" width="${sbw}" height="40" rx="4" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>`).join('')}
-<text x="340" y="160" text-anchor="middle" style="font-size:11px;fill:var(--color-text-tertiary)">6 of 64 stripe locks shown — N/64 buckets per stripe</text></svg>`;
-  }
-  if(i===4){
-    const bx=[68,160,252,344,436],bw=80,bh=44,bc=bx.map(x=>x+40);
-    const lY=22,lH=36,bY=110;
-    return `<svg width="100%" viewBox="0 0 680 184">${AD}
-<rect x="60" y="${lY}" width="560" height="${lH}" rx="10" stroke-dasharray="4 3" stroke-width="0.8" style="fill:var(--c4);fill-opacity:.08;stroke:var(--c4);stroke-opacity:.45"/>
-<rect x="215" y="${lY+4}" width="250" height="${lH-8}" rx="7" stroke-width="0.5" style="fill:var(--tb4);stroke:var(--tt4)"/>
-<text x="340" y="${lY+lH/2}" text-anchor="middle" dominant-baseline="central" style="font-size:12px;font-weight:500;fill:var(--tt4)">global writer mutex</text>
-<line x1="340" y1="${lY+lH}" x2="340" y2="${bY-8}" stroke-width="0.8" style="stroke:var(--c4);stroke-opacity:.5" marker-end="url(#arr)"/>
-${bx.map((x,j)=>`<rect x="${x}" y="${bY}" width="${bw}" height="${bh}" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/><text x="${bc[j]}" y="${bY+13}" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">v${j} | hop_info</text><text x="${bc[j]}" y="${bY+30}" text-anchor="middle" dominant-baseline="central" style="font-size:9px;fill:var(--color-text-secondary)">H=32 nbhd</text>`).join('')}
-<text x="524" y="${bY+bh/2}" dominant-baseline="central" style="font-size:14px;fill:var(--color-text-tertiary)">…</text>
-<text x="68" y="174" style="font-size:11px;fill:var(--tt4)">reads: lock-free via version + hop_info bitmap</text></svg>`;
-  }
-  if(i===5){
-    return `<svg width="100%" viewBox="0 0 680 222">${AD}
-<rect x="155" y="16" width="370" height="184" rx="10" stroke-dasharray="4 3" stroke-width="0.8" style="fill:var(--c5);fill-opacity:.08;stroke:var(--c5);stroke-opacity:.4"/>
-<rect x="240" y="20" width="200" height="30" rx="7" stroke-width="0.5" style="fill:var(--tb5);stroke:var(--tt5)"/>
-<text x="340" y="35" text-anchor="middle" dominant-baseline="central" style="font-size:12px;font-weight:500;fill:var(--tt5)">global mutex (1)</text>
-<rect x="265" y="62" width="150" height="36" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
-<text x="340" y="74" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--color-text-primary)">root</text>
-<text x="340" y="89" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">children[0..255]</text>
-<line x1="340" y1="98" x2="340" y2="114" stroke-width="0.8" style="stroke:var(--c5);stroke-opacity:.5" marker-end="url(#arr)"/>
-<rect x="265" y="114" width="150" height="36" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
-<text x="340" y="126" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--color-text-primary)">internal ×7</text>
-<text x="340" y="141" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">unique_ptr&lt;Node&gt;</text>
-<line x1="265" y1="132" x2="157" y2="132" stroke-width="0.5" stroke-dasharray="2 2" style="stroke:var(--color-border-secondary)"/>
-<text x="132" y="132" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:var(--color-text-tertiary)">···</text>
-<line x1="415" y1="132" x2="523" y2="132" stroke-width="0.5" stroke-dasharray="2 2" style="stroke:var(--color-border-secondary)"/>
-<text x="548" y="132" text-anchor="middle" dominant-baseline="central" style="font-size:14px;fill:var(--color-text-tertiary)">···</text>
-<line x1="340" y1="150" x2="340" y2="164" stroke-width="0.8" style="stroke:var(--c5);stroke-opacity:.5" marker-end="url(#arr)"/>
-<rect x="265" y="164" width="150" height="36" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
-<text x="340" y="176" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--color-text-primary)">leaf</text>
-<text x="340" y="191" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">has_value · value</text>
-<text x="340" y="214" text-anchor="middle" style="font-size:11px;fill:var(--tt5)">8 levels · 256-way branching · byte decomposition of uint64</text></svg>`;
-  }
-  if(i===6){
-    return `<svg width="100%" viewBox="0 0 680 208">${AD}
-<rect x="265" y="22" width="150" height="38" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
-<text x="340" y="34" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--color-text-primary)">root</text>
-<text x="340" y="50" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">atomic&lt;Node*&gt; ×256</text>
-<line x1="340" y1="60" x2="340" y2="78" stroke-width="0.8" style="stroke:var(--c6);stroke-opacity:.5" marker-end="url(#arr)"/>
-<text x="353" y="70" style="font-size:9px;fill:var(--color-text-tertiary)">acquire-load</text>
-<rect x="265" y="78" width="150" height="38" rx="5" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
-<text x="340" y="90" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--color-text-primary)">internal ×7</text>
-<text x="340" y="106" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">atomic&lt;Node*&gt; ×256</text>
-<line x1="416" y1="97" x2="483" y2="97" stroke-width="0.7" stroke-dasharray="3 2" style="stroke:var(--c6);stroke-opacity:.6" marker-end="url(#arr)"/>
-<rect x="485" y="85" width="148" height="26" rx="5" stroke-dasharray="3 2" stroke-width="0.7" style="fill:var(--tb6);stroke:var(--tt6)"/>
-<text x="559" y="98" text-anchor="middle" dominant-baseline="central" style="font-size:10px;font-family:var(--font-mono);fill:var(--tt6)">new child → CAS</text>
-<line x1="340" y1="116" x2="340" y2="132" stroke-width="0.8" style="stroke:var(--c6);stroke-opacity:.5" marker-end="url(#arr)"/>
-<rect x="265" y="132" width="150" height="48" rx="5" stroke-width="1" style="fill:var(--tb6);stroke:var(--tt6)"/>
-<text x="340" y="148" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--tt6)">leaf</text>
-<text x="340" y="163" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--tt6)">value_mu : mutex</text>
-<text x="340" y="176" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--tt6)">has_value · value</text>
-<text x="68" y="198" style="font-size:11px;fill:var(--tt6)">reads: lock-free walk — only leaf value_mu locks</text></svg>`;
-  }
-}
+// 1: fine chain - many doors in parallel
+`<svg width="100%" viewBox="0 0 680 220" preserveAspectRatio="xMidYMin meet"><defs><marker id="arr1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+${[0,1,2,3,4,5].map(i=>{const x=36+i*104;return `<g transform="translate(${x},0)"><circle cx="45" cy="38" r="11" style="fill:var(--color-text-tertiary);fill-opacity:.75"/><line x1="45" y1="53" x2="45" y2="84" stroke-width="0.9" style="stroke:var(--c1);stroke-opacity:.55" marker-end="url(#arr1)"/><rect x="10" y="90" width="70" height="100" rx="8" stroke-width="0.5" style="fill:var(--tb1);stroke:var(--tt1)"/><path d="M36 116 L36 108 A9 9 0 0 1 54 108 L54 116" fill="none" stroke-width="1.5" style="stroke:var(--tt1)"/><rect x="30" y="116" width="30" height="18" rx="2" style="fill:var(--tt1)"/><line x1="20" y1="148" x2="70" y2="148" stroke-width="0.5" style="stroke:var(--tt1);stroke-opacity:.45"/><line x1="20" y1="164" x2="70" y2="164" stroke-width="0.5" style="stroke:var(--tt1);stroke-opacity:.45"/><line x1="20" y1="180" x2="70" y2="180" stroke-width="0.5" style="stroke:var(--tt1);stroke-opacity:.45"/></g>`;}).join('')}
+<text x="340" y="211" text-anchor="middle" style="font-size:11px;fill:var(--tt1)">each shelf has its own key - all work in parallel</text></svg>`,
 
-function render(){
+// 2: cuckoo optimistic - two homes + peek
+`<svg width="100%" viewBox="0 0 680 230" preserveAspectRatio="xMidYMin meet"><defs><marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+<rect x="300" y="16" width="80" height="26" rx="13" stroke-width="0.5" style="fill:var(--tb2);stroke:var(--tt2)"/>
+<text x="340" y="29" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--tt2)">key k</text>
+<line x1="320" y1="42" x2="214" y2="74" stroke-width="0.9" style="stroke:var(--c2);stroke-opacity:.55" marker-end="url(#arr2)"/>
+<line x1="360" y1="42" x2="466" y2="74" stroke-width="0.9" style="stroke:var(--c2);stroke-opacity:.55" marker-end="url(#arr2)"/>
+<rect x="100" y="76" width="220" height="110" rx="10" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<rect x="110" y="84" width="58" height="18" rx="4" style="fill:var(--tb2);stroke-width:0.5;stroke:var(--tt2)"/>
+<text x="139" y="93" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-weight:500;fill:var(--tt2);letter-spacing:.05em">HOME A</text>
+<text x="310" y="93" text-anchor="end" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">tag 12</text>
+${[0,1,2,3].map(i=>`<rect x="${112+i*52}" y="114" width="44" height="60" rx="4" stroke-width="0.5" style="fill:var(--color-background-primary);stroke:var(--color-border-tertiary)"/>`).join('')}
+<rect x="360" y="76" width="220" height="110" rx="10" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<rect x="370" y="84" width="58" height="18" rx="4" style="fill:var(--tb2);stroke-width:0.5;stroke:var(--tt2)"/>
+<text x="399" y="93" text-anchor="middle" dominant-baseline="central" style="font-size:9px;font-weight:500;fill:var(--tt2);letter-spacing:.05em">HOME B</text>
+<text x="570" y="93" text-anchor="end" dominant-baseline="central" style="font-size:9px;font-family:var(--font-mono);fill:var(--color-text-tertiary)">tag 7</text>
+${[0,1,2,3].map(i=>`<rect x="${372+i*52}" y="114" width="44" height="60" rx="4" stroke-width="0.5" style="fill:var(--color-background-primary);stroke:var(--color-border-tertiary)"/>`).join('')}
+<circle cx="40" cy="130" r="11" style="fill:var(--color-text-tertiary);fill-opacity:.75"/>
+<text x="40" y="156" text-anchor="middle" style="font-size:9px;fill:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em">reader</text>
+<line x1="54" y1="130" x2="96" y2="130" stroke-width="0.9" style="stroke:var(--c2);stroke-opacity:.55" marker-end="url(#arr2)"/>
+<text x="75" y="120" text-anchor="middle" style="font-size:9px;fill:var(--color-text-tertiary);font-style:italic">peek</text>
+<text x="340" y="205" text-anchor="middle" style="font-size:10px;fill:var(--color-text-tertiary)">read tag → load slots → re-check tag</text>
+<text x="340" y="221" text-anchor="middle" style="font-size:11px;fill:var(--tt2)">readers skip the lock - writers don't</text></svg>`,
+
+// 3: cuckoo striped - wings + displacement path
+`<svg width="100%" viewBox="0 0 680 230" preserveAspectRatio="xMidYMin meet"><defs><marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+${[0,1,2,3].map(i=>{const x=40+i*160;return `<g transform="translate(${x},30)"><rect width="140" height="130" rx="10" stroke-width="0.5" style="fill:var(--tb3);stroke:var(--tt3)"/><text x="70" y="20" text-anchor="middle" dominant-baseline="central" style="font-size:10px;font-weight:500;fill:var(--tt3);letter-spacing:.06em">WING ${i+1}</text><path d="M60 52 L60 44 A10 10 0 0 1 80 44 L80 52" fill="none" stroke-width="1.6" style="stroke:var(--tt3)"/><rect x="53" y="52" width="34" height="22" rx="3" style="fill:var(--tt3)"/>${[0,1,2].map(j=>`<rect x="${16+j*38}" y="86" width="30" height="36" rx="3" stroke-width="0.5" style="fill:var(--color-background-primary);stroke:var(--color-border-tertiary)"/>`).join('')}</g>`;}).join('')}
+<path d="M90 172 Q180 196 270 172 Q360 148 450 172 Q540 196 610 172" fill="none" stroke-width="1.3" stroke-dasharray="4 3" style="stroke:var(--c3);stroke-opacity:.65" marker-end="url(#arr3)"/>
+<text x="340" y="198" text-anchor="middle" style="font-size:10px;fill:var(--color-text-tertiary);font-style:italic">displacement path</text>
+<text x="340" y="218" text-anchor="middle" style="font-size:11px;fill:var(--tt3)">each wing has its own key - a move only grabs the wings it crosses</text></svg>`,
+
+// 4: hopscotch - neighborhood map
+`<svg width="100%" viewBox="0 0 680 230" preserveAspectRatio="xMidYMin meet"><defs><marker id="arr4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+<circle cx="38" cy="110" r="11" style="fill:var(--color-text-tertiary);fill-opacity:.75"/>
+<text x="38" y="136" text-anchor="middle" style="font-size:9px;fill:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em">reader</text>
+<line x1="52" y1="110" x2="96" y2="110" stroke-width="0.9" style="stroke:var(--c4);stroke-opacity:.55" marker-end="url(#arr4)"/>
+<rect x="100" y="80" width="150" height="60" rx="10" stroke-width="0.5" style="fill:var(--tb4);stroke:var(--tt4)"/>
+<text x="175" y="100" text-anchor="middle" dominant-baseline="central" style="font-size:10px;font-weight:500;fill:var(--tt4);letter-spacing:.05em">QUICK MAP</text>
+${[0,1,2,3,4,5,6,7].map(i=>`<rect x="${114+i*16}" y="114" width="13" height="13" rx="1" stroke-width="0.5" style="fill:${[2,5].includes(i)?'var(--tt4)':'var(--color-background-primary)'};stroke:var(--tt4);stroke-opacity:.65"/>`).join('')}
+<line x1="254" y1="110" x2="284" y2="110" stroke-width="0.9" style="stroke:var(--c4);stroke-opacity:.55" marker-end="url(#arr4)"/>
+<rect x="288" y="56" width="356" height="108" rx="10" stroke-dasharray="4 3" stroke-width="0.8" style="fill:var(--c4);fill-opacity:.06;stroke:var(--c4);stroke-opacity:.4"/>
+<text x="466" y="72" text-anchor="middle" style="font-size:9px;fill:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.08em">neighborhood</text>
+${[0,1,2,3,4,5,6,7].map(i=>`<rect x="${300+i*42}" y="86" width="36" height="66" rx="4" stroke-width="0.5" style="fill:${[2,5].includes(i)?'var(--tb4)':'var(--color-background-primary)'};stroke:${[2,5].includes(i)?'var(--tt4)':'var(--color-border-tertiary)'}"/>`).join('')}
+<text x="340" y="190" text-anchor="middle" style="font-size:10px;fill:var(--color-text-tertiary)">every key lives a few steps from home</text>
+<text x="340" y="210" text-anchor="middle" style="font-size:11px;fill:var(--tt4)">readers jump straight to the slot - no lock, no chase</text></svg>`,
+
+// 5: radix coarse - one door + phone tree
+`<svg width="100%" viewBox="0 0 680 240" preserveAspectRatio="xMidYMin meet"><defs><marker id="arr5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+<g style="fill:var(--color-text-tertiary);fill-opacity:.75"><circle cx="28" cy="70" r="10"/><circle cx="28" cy="104" r="10"/><circle cx="28" cy="138" r="10"/></g>
+<text x="28" y="170" text-anchor="middle" style="font-size:9px;fill:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em">waiting</text>
+<rect x="66" y="70" width="78" height="78" rx="10" stroke-width="0.5" style="fill:var(--tb5);stroke:var(--tt5)"/>
+<path d="M95 96 L95 88 A10 10 0 0 1 115 88 L115 96" fill="none" stroke-width="1.8" style="stroke:var(--tt5)"/>
+<rect x="88" y="96" width="34" height="22" rx="3" style="fill:var(--tt5)"/>
+<text x="105" y="166" text-anchor="middle" style="font-size:10px;font-weight:500;fill:var(--tt5)">one door</text>
+<line x1="144" y1="109" x2="178" y2="109" stroke-width="0.9" style="stroke:var(--c5);stroke-opacity:.55" marker-end="url(#arr5)"/>
+<rect x="180" y="92" width="82" height="34" rx="6" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<text x="221" y="103" text-anchor="middle" dominant-baseline="central" style="font-size:9px;fill:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em">byte 1</text>
+<text x="221" y="118" text-anchor="middle" dominant-baseline="central" style="font-size:10px;font-family:var(--font-mono);fill:var(--color-text-primary)">which way?</text>
+<line x1="262" y1="102" x2="320" y2="62" stroke-width="0.7" style="stroke:var(--c5);stroke-opacity:.45" marker-end="url(#arr5)"/>
+<line x1="262" y1="109" x2="320" y2="109" stroke-width="0.7" style="stroke:var(--c5);stroke-opacity:.45" marker-end="url(#arr5)"/>
+<line x1="262" y1="116" x2="320" y2="156" stroke-width="0.7" style="stroke:var(--c5);stroke-opacity:.45" marker-end="url(#arr5)"/>
+<rect x="322" y="44" width="82" height="34" rx="6" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<text x="363" y="55" text-anchor="middle" dominant-baseline="central" style="font-size:9px;fill:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em">byte 2</text>
+<text x="363" y="70" text-anchor="middle" dominant-baseline="central" style="font-size:10px;font-family:var(--font-mono);fill:var(--color-text-primary)">which way?</text>
+<rect x="322" y="92" width="82" height="34" rx="6" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<text x="363" y="103" text-anchor="middle" dominant-baseline="central" style="font-size:9px;fill:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em">byte 2</text>
+<text x="363" y="118" text-anchor="middle" dominant-baseline="central" style="font-size:10px;font-family:var(--font-mono);fill:var(--color-text-primary)">which way?</text>
+<rect x="322" y="138" width="82" height="34" rx="6" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<text x="363" y="149" text-anchor="middle" dominant-baseline="central" style="font-size:9px;fill:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em">byte 2</text>
+<text x="363" y="164" text-anchor="middle" dominant-baseline="central" style="font-size:10px;font-family:var(--font-mono);fill:var(--color-text-primary)">which way?</text>
+<text x="432" y="113" dominant-baseline="central" style="font-size:16px;fill:var(--color-text-tertiary)">···</text>
+<line x1="462" y1="109" x2="504" y2="109" stroke-width="0.9" style="stroke:var(--c5);stroke-opacity:.55" marker-end="url(#arr5)"/>
+<rect x="506" y="82" width="134" height="54" rx="8" stroke-width="1" style="fill:var(--tb5);stroke:var(--tt5)"/>
+<text x="573" y="101" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:var(--tt5)">value</text>
+<text x="573" y="120" text-anchor="middle" dominant-baseline="central" style="font-size:9px;fill:var(--color-text-tertiary)">(at the leaf)</text>
+<text x="340" y="218" text-anchor="middle" style="font-size:11px;fill:var(--tt5)">one door in - then branch byte by byte to the value</text></svg>`,
+
+// 6: radix fine - crowd walks freely
+`<svg width="100%" viewBox="0 0 680 240" preserveAspectRatio="xMidYMin meet"><defs><marker id="arr6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+<g style="fill:var(--color-text-tertiary);fill-opacity:.75"><circle cx="30" cy="56" r="10"/><circle cx="30" cy="92" r="10"/><circle cx="30" cy="128" r="10"/><circle cx="30" cy="164" r="10"/></g>
+<text x="30" y="194" text-anchor="middle" style="font-size:9px;fill:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em">anyone</text>
+<line x1="44" y1="56" x2="148" y2="68" stroke-width="0.8" style="stroke:var(--c6);stroke-opacity:.5" marker-end="url(#arr6)"/>
+<line x1="44" y1="92" x2="148" y2="96" stroke-width="0.8" style="stroke:var(--c6);stroke-opacity:.5" marker-end="url(#arr6)"/>
+<line x1="44" y1="128" x2="148" y2="124" stroke-width="0.8" style="stroke:var(--c6);stroke-opacity:.5" marker-end="url(#arr6)"/>
+<line x1="44" y1="164" x2="148" y2="152" stroke-width="0.8" style="stroke:var(--c6);stroke-opacity:.5" marker-end="url(#arr6)"/>
+<rect x="150" y="50" width="84" height="120" rx="10" stroke-dasharray="4 3" stroke-width="0.7" style="fill:var(--c6);fill-opacity:.06;stroke:var(--c6);stroke-opacity:.45"/>
+<text x="192" y="66" text-anchor="middle" style="font-size:9px;fill:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em">entrance</text>
+<text x="192" y="112" text-anchor="middle" dominant-baseline="central" style="font-size:12px;font-weight:500;fill:var(--tt6)">NO DOOR</text>
+<text x="192" y="132" text-anchor="middle" dominant-baseline="central" style="font-size:9px;fill:var(--color-text-tertiary);font-style:italic">walk right in</text>
+<line x1="234" y1="110" x2="268" y2="110" stroke-width="0.9" style="stroke:var(--c6);stroke-opacity:.55" marker-end="url(#arr6)"/>
+<rect x="270" y="72" width="100" height="32" rx="6" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<rect x="270" y="120" width="100" height="32" rx="6" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<line x1="370" y1="88" x2="402" y2="88" stroke-width="0.7" style="stroke:var(--c6);stroke-opacity:.4" marker-end="url(#arr6)"/>
+<line x1="370" y1="136" x2="402" y2="136" stroke-width="0.7" style="stroke:var(--c6);stroke-opacity:.4" marker-end="url(#arr6)"/>
+<rect x="404" y="58" width="100" height="32" rx="6" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<rect x="404" y="98" width="100" height="32" rx="6" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<rect x="404" y="138" width="100" height="32" rx="6" stroke-width="0.5" style="fill:var(--color-background-secondary);stroke:var(--color-border-secondary)"/>
+<line x1="504" y1="114" x2="538" y2="114" stroke-width="0.9" style="stroke:var(--c6);stroke-opacity:.55" marker-end="url(#arr6)"/>
+<rect x="540" y="80" width="102" height="66" rx="8" stroke-width="1" style="fill:var(--tb6);stroke:var(--tt6)"/>
+<path d="M580 106 L580 98 A8 8 0 0 1 596 98 L596 106" fill="none" stroke-width="1.4" style="stroke:var(--tt6)"/>
+<rect x="574" y="106" width="28" height="18" rx="2" style="fill:var(--tt6)"/>
+<text x="591" y="140" text-anchor="middle" dominant-baseline="central" style="font-size:10px;fill:var(--tt6);font-weight:500">leaf only</text>
+<text x="340" y="220" text-anchor="middle" style="font-size:11px;fill:var(--tt6)">anyone walks the tree - only the leaf box has a lock</text></svg>`,
+];
+function svgDiag(i){return DIAGS[i]||'';}
+
+function renderStruct(){
   const d=D[sel];
-  const isRadix=d.fam==='radix';
-
-  document.getElementById('htabs').innerHTML=D.slice(0,5).map((x,i)=>`<div class="ht-t${i===sel?' act':''}" onclick="setTab(${i})" style="${i===sel?`border-color:var(--c${i});color:var(--tt${i})`:''}">`+
-    `<div style="margin-bottom:3px">${x.n}</div>`+
-    `<div style="font-size:10px;padding:2px 6px;border-radius:10px;display:inline-block;background:var(--tb${i});color:var(--tt${i})">${x.st}</div></div>`).join('');
-
-  document.getElementById('rtabs').innerHTML=D.slice(5).map((x,i)=>{
-    const idx=i+5;
-    return `<div class="ht-t${idx===sel?' act':''}" onclick="setTab(${idx})" style="${idx===sel?`border-color:var(--c${idx});color:var(--tt${idx})`:''}">`+
-      `<div style="margin-bottom:3px">${x.n}</div>`+
-      `<div style="font-size:10px;padding:2px 6px;border-radius:10px;display:inline-block;background:var(--tb${idx});color:var(--tt${idx})">${x.st}</div></div>`;
-  }).join('');
-
-  document.getElementById('dg').innerHTML=svgDiag(sel);
-  document.getElementById('rp').textContent=d.r;
-  document.getElementById('wp').textContent=d.w;
-
-  if(isRadix){
-    const mx=88.36;
-    const wselHTML=RWL.map((w,i)=>`<button class="wb${i===rwsel?' wa':''}" onclick="setRwl(${i})">${w}</button>`).join('');
-    document.getElementById('perf').innerHTML=`<div style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
-        <span style="font-size:11px;color:var(--color-text-secondary);font-weight:500">Throughput — Mops/s at 8T, 95%R (sharing sweep)</span>
-        <div style="display:flex;gap:6px">${wselHTML}</div>
-      </div>
-      <div class="br"><div class="bn" style="color:var(--color-text-tertiary)">cuckoo opt ✦</div><div class="bt"><div class="bf" style="width:${(87.30/mx*100).toFixed(1)}%;background:var(--c2);opacity:.4"></div></div><div class="bv" style="color:var(--color-text-tertiary)">87.30</div></div>
-      ${[5,6].map(idx=>`<div class="br"><div class="bn">${D[idx].n}</div><div class="bt"><div class="bf" style="width:${(D[idx].mops[rwsel]/mx*100).toFixed(1)}%;background:var(--c${idx})"></div></div><div class="bv" style="color:var(--c${idx})">${D[idx].mops[rwsel]}</div></div>`).join('')}
-      <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px">✦ cuckoo opt shown as reference (uniform 95%R peak, 16T)</div>
-      <div style="margin-top:.85rem;padding-top:.75rem;border-top:0.5px solid var(--color-border-tertiary)">
-        <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px">Thread scaling — 95%R · pc=100</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <span style="font-size:11px;padding:3px 10px;border-radius:10px;background:var(--tb5);color:var(--tt5);font-family:var(--font-mono)">coarse: 21.48 → 6.08 Mops/s (1T→8T, anti-scales)</span>
-          <span style="font-size:11px;padding:3px 10px;border-radius:10px;background:var(--tb6);color:var(--tt6);font-family:var(--font-mono)">fine: 21.46 → 81.86 Mops/s (3.81× speedup)</span>
-        </div>
-      </div>
-    </div>`;
-  } else {
-    const mx=87.30;
-    const wselHTML=HWL.map((w,i)=>`<button class="wb${i===hwsel?' wa':''}" onclick="setHwl(${i})">${w}</button>`).join('');
-    document.getElementById('perf').innerHTML=`<div style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
-        <span style="font-size:11px;color:var(--color-text-secondary);font-weight:500">Throughput — Mops/s at 16 threads</span>
-        <div style="display:flex;gap:6px">${wselHTML}</div>
-      </div>
-      ${D.slice(0,5).map((x,i)=>`<div class="br"><div class="bn">${x.n}</div><div class="bt"><div class="bf" style="width:${(x.mops[hwsel]/mx*100).toFixed(1)}%;background:var(--c${i})"></div></div><div class="bv" style="color:var(--c${i})">${x.mops[hwsel]}</div></div>`).join('')}
-      <div style="margin-top:.85rem;padding-top:.75rem;border-top:0.5px solid var(--color-border-tertiary)">
-        <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px">p99 latency — trace workload (60%R, 16T)</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">${D.slice(0,5).map((x,i)=>`<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:var(--tb${i});color:var(--tt${i});font-variant-numeric:tabular-nums;white-space:nowrap;font-family:var(--font-mono)">${x.n}: ${x.p99} µs</span>`).join('')}</div>
-      </div>
-    </div>`;
-  }
+  const lbl=document.getElementById('structLabel');
+  const ttl=document.getElementById('structTitle');
+  lbl.textContent=d.fam==='hash'?'HASH TABLE':'RADIX TREE';
+  lbl.style.color=`var(--tt${sel})`;
+  ttl.textContent=d.n;
+  ttl.style.color=`var(--tt${sel})`;
+  document.getElementById('structDesc').textContent=d.explain;
+  const tag=document.getElementById('structTag');
+  tag.textContent=d.st;
+  tag.style.background=`var(--tb${sel})`;
+  tag.style.color=`var(--tt${sel})`;
+  document.getElementById('structDiag').innerHTML=svgDiag(sel);
+  const btn=(i,lbl)=>`<span class="struct-btn${i===sel?' act':''}" onclick="setTab(${i})" style="${i===sel?`border-color:var(--c${i});color:var(--tt${i});background:var(--tb${i})`:''}">${lbl}</span>`;
+  const grps=[{name:'Chaining',ids:[0,1]},{name:'Cuckoo',ids:[2,3]},{name:'Hopscotch',ids:[4]}];
+  document.getElementById('structHashBtns').innerHTML=grps.map(g=>`<div class="struct-group"><div class="struct-group-btns">${g.ids.map(i=>btn(i,D[i].short)).join('')}</div><div class="struct-group-brace"></div><div class="struct-group-label">${g.name}</div></div>`).join('');
+  document.getElementById('structRadixBtns').innerHTML=[5,6].map(i=>btn(i,D[i].short)).join('');
 }
-render();
+
+renderStruct();
+
+const HWL=[
+  {n:'Uniform 95%R',sub:'random keys'},
+  {n:'Zipfian 95%R',sub:'skewed keys'},
+  {n:'Trace 60%R',sub:'real ChatGPT trace'},
+];
+const RWL=[
+  {n:'pc=10',sub:'high sharing'},
+  {n:'pc=100',sub:'medium'},
+  {n:'pc=1k',sub:'low'},
+  {n:'pc=10k',sub:'very low'},
+];
+const HDATA=[
+  {n:'Coarse chain',i:0,mops:[6.67,8.14,7.01],p99:33.64},
+  {n:'Fine-grained',i:1,mops:[61.79,45.23,31.51],p99:1.53},
+  {n:'Cuckoo opt',i:2,mops:[87.30,55.47,29.04],p99:1.36},
+  {n:'Cuckoo striped',i:3,mops:[5.98,5.90,7.08],p99:56.09},
+  {n:'Hopscotch',i:4,mops:[27.36,22.27,6.67],p99:60.84},
+];
+const RDATA=[
+  {n:'Radix coarse',i:5,mops:[6.30,6.08,5.87,3.57]},
+  {n:'Radix fine',i:6,mops:[88.36,81.86,82.45,53.41]},
+];
+const CUCKOO_REF=[87.30,87.30,87.30,87.30];
+let hwsel=0,rwsel=0;
+
+function bar(name,val,max,colorIdx,ref){
+  const pct=(val/max*100).toFixed(1);
+  return `<div class="perf-bar${ref?' ref':''}"><span class="perf-bar-name"${ref?'':` style="color:var(--tt${colorIdx})"`}>${name}${ref?' <span style="font-size:9.5px;letter-spacing:.05em;text-transform:uppercase">· ref</span>':''}</span><span class="perf-bar-track"><span class="perf-bar-fill" style="width:${pct}%;background:var(--c${colorIdx});${ref?'opacity:.4':''}"></span></span><span class="perf-bar-val"${ref?'':` style="color:var(--c${colorIdx})"`}>${val.toFixed(2)}<span class="perf-bar-val-unit">Mops/s</span></span></div>`;
+}
+
+function renderHash(){
+  document.getElementById('hashTabs').innerHTML=HWL.map((w,i)=>`<span class="perf-tab${i===hwsel?' act':''}" onclick="setHwl(${i})">${w.n}<span class="perf-tab-sub">· ${w.sub}</span></span>`).join('');
+  const mx=Math.max(...HDATA.map(d=>d.mops[hwsel]));
+  document.getElementById('hashBars').innerHTML=HDATA.map(d=>bar(d.n,d.mops[hwsel],mx,d.i,false)).join('');
+  const sorted=[...HDATA].sort((a,b)=>a.p99-b.p99);
+  document.getElementById('hashChips').innerHTML=sorted.map(d=>`<span class="perf-chip" style="background:var(--tb${d.i});color:var(--tt${d.i})">${d.n}: ${d.p99} µs</span>`).join('');
+}
+
+function renderRadix(){
+  document.getElementById('radixTabs').innerHTML=RWL.map((w,i)=>`<span class="perf-tab${i===rwsel?' act':''}" onclick="setRwl(${i})">${w.n}<span class="perf-tab-sub">· ${w.sub}</span></span>`).join('');
+  const mx=Math.max(CUCKOO_REF[rwsel],...RDATA.map(d=>d.mops[rwsel]));
+  const refBar=bar('Cuckoo opt',CUCKOO_REF[rwsel],mx,2,true);
+  document.getElementById('radixBars').innerHTML=refBar+RDATA.map(d=>bar(d.n,d.mops[rwsel],mx,d.i,false)).join('');
+}
+
+function setHwl(i){hwsel=i;renderHash();}
+function setRwl(i){rwsel=i;renderRadix();}
+renderHash();
+renderRadix();
 </script>
 </body>
 </html>
